@@ -10,5 +10,13 @@
         }
     ],
     "minimum-stability": "dev",
-    "require": {}
+    "require": {
+        "ramphor/locations": "dev-master",
+        "ramphor/facades": "dev-master"
+    },
+    "autoload": {
+        "files": [
+            "./diagioihanhchinh.php"
+        ]
+    }
 }
