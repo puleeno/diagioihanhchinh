@@ -13,11 +13,13 @@
     "require": {
         "ramphor/locations": "dev-master",
         "ramphor/facades": "dev-master",
-        "phpoffice/phpspreadsheet": "1.8.2"
+        "phpoffice/phpspreadsheet": "1.8.2",
+        "nategood/commando": "dev-master"
     },
     "autoload": {
         "files": [
             "./diagioihanhchinh.php"
         ]
-    }
+    },
+    "bin": "./bin/diagioihanhchinh"
 }
