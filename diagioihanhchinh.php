@@ -8,7 +8,9 @@
  * Description: Triển khai địa giới hành chính cho WordPress hỗ trợ WP-JSON (Rest), Boundaries data cho bản đồ
  */
 
-define( 'DIAGIOIHANHCHINH_PLUGIN_FILE', __FILE__ );
+if ( ! defined( 'DIAGIOIHANHCHINH_PLUGIN_FILE' ) ) {
+	define( 'DIAGIOIHANHCHINH_PLUGIN_FILE', __FILE__ );
+}
 
 $composer_autoloader = sprintf( '%s/vendor/autoload.php', dirname( __FILE__ ) );
 if ( ! file_exists( $composer_autoloader ) ) {
