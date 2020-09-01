@@ -1,14 +1,23 @@
 #!/usr/bin/env php
 <?php
-$plugin_dir = realpath(dirname(__FILE__) . '/..');
-$composer_autoloader = sprintf('%s/vendor/autoload.php', $plugin_dir);
+$diagioihanhchinh_dir      = realpath(dirname(__FILE__) . '/..');
+$wordpress_dir             = preg_replace('/(.+)\/wp\-content\/.+/', '$1', $diagioihanhchinh_dir);
+$composer_autoloader       = sprintf('%s/vendor/autoload.php', $diagioihanhchinh_dir);
+$_SERVER['REQUEST_METHOD'] = 'GET';
 
 if (!file_exists($composer_autoloader)) {
     exit('Please check your environement before execute `diagioihanhchinh`');
 }
 
+define( 'WP_USE_THEMES', false );
+
+/** Loads the WordPress Environment and Template */
+require_once $wordpress_dir . '/wp-blog-header.php';
 require_once $composer_autoloader;
 
 if (!class_exists(Diagioihanhchinh::class)) {
-    require_once $plugin_dir . '/includes/class-diagioihanhchinh.php';
+    require_once $diagioihanhchinh_dir . '/includes/class-diagioihanhchinh.php';
 }
+
+$command = new Diagioihanhchinh_Command();
+$command->execute();

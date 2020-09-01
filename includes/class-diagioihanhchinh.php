@@ -17,7 +17,7 @@ class Diagioihanhchinh {
 		require_once dirname( __FILE__ ) . '/class-diagioihanhchinh-common.php';
 		require_once dirname( __FILE__ ) . '/class-diagioihanhchinh-taxonomies.php';
 
-		require_once dirname( __FILE__ ) . '/command/class-diagioihanhchinh-command.php';
+		require_once dirname( __FILE__ ) . '/class-diagioihanhchinh-command.php';
 		require_once dirname( __FILE__ ) . '/class-diagioihanhchinh-install.php';
 	}
 }
