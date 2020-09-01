@@ -12,7 +12,8 @@
     "minimum-stability": "dev",
     "require": {
         "ramphor/locations": "dev-master",
-        "ramphor/facades": "dev-master"
+        "ramphor/facades": "dev-master",
+        "phpoffice/phpspreadsheet": "1.8.2"
     },
     "autoload": {
         "files": [
