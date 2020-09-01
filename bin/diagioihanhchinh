@@ -20,7 +20,7 @@ if (!class_exists(Diagioihanhchinh::class)) {
 }
 
 if (!class_exists(Diagioihanhchinh_Command::class)) {
-    require_once $diagioihanhchinh_dir . '/includes/class-diagioihanhchinh.php';
+    require_once $diagioihanhchinh_dir . '/includes/class-diagioihanhchinh-command.php';
 }
 
 $command = new Diagioihanhchinh_Command();
