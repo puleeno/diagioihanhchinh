@@ -19,5 +19,9 @@ if (!class_exists(Diagioihanhchinh::class)) {
     require_once $diagioihanhchinh_dir . '/includes/class-diagioihanhchinh.php';
 }
 
+if (!class_exists(Diagioihanhchinh_Command::class)) {
+    require_once $diagioihanhchinh_dir . '/includes/class-diagioihanhchinh.php';
+}
+
 $command = new Diagioihanhchinh_Command();
 $command->execute();
