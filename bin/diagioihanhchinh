@@ -1,0 +1,14 @@
+#!/usr/bin/env php
+<?php
+$plugin_dir = realpath(dirname(__FILE__) . '/..');
+$composer_autoloader = sprintf('%s/vendor/autoload.php', $plugin_dir);
+
+if (!file_exists($composer_autoloader)) {
+    exit('Please check your environement before execute `diagioihanhchinh`');
+}
+
+require_once $composer_autoloader;
+
+if (!class_exists(Diagioihanhchinh::class)) {
+    require_once $plugin_dir . '/includes/class-diagioihanhchinh.php';
+}
