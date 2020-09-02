@@ -79,19 +79,22 @@ class Diagioihanhchinh_Command {
 			$row = array_combine( $header, $row );
 			if ( ! isset( $json_arr[ $row['city_code'] ] ) ) {
 				$json_arr[ $row['city_code'] ] = array(
-					'name' => $row['city_name'],
+					'name'  => $row['city_name'],
+					'level' => '1',
 				);
 			}
 
 			if ( ! isset( $json_arr[ $row['city_code'] ]['districts'][ $row['district_code'] ] ) ) {
 				$json_arr[ $row['city_code'] ]['districts'][ $row['district_code'] ] = array(
-					'name' => $row['district_name'],
+					'name'  => $row['district_name'],
+					'level' => '2',
 				);
 			}
 
 			if ( ! isset( $json_arr[ $row['city_code'] ]['districts'][ $row['district_code'] ]['wards'][ $row['ward_code'] ] ) ) {
 				$json_arr[ $row['city_code'] ]['districts'][ $row['district_code'] ]['wards'][ $row['ward_code'] ] = array(
-					'name' => $row['ward_name'],
+					'name'  => $row['ward_name'],
+					'level' => '3',
 				);
 			}
 		}
