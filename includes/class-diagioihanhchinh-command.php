@@ -77,8 +77,27 @@ class Diagioihanhchinh_Command {
 
 		foreach ( $rows as $row ) {
 			$row = array_combine( $header, $row );
-			var_dump( $row );
-			die;
+			if ( ! isset( $json_arr[ $row['city_code'] ] ) ) {
+				$json_arr[ $row['city_code'] ] = array(
+					'name' => $row['city_name'],
+				);
+			}
+
+			if ( ! isset( $json_arr[ $row['city_code'] ]['districts'][ $row['district_code'] ] ) ) {
+				$json_arr[ $row['city_code'] ]['districts'][ $row['district_code'] ] = array(
+					'name' => $row['district_name'],
+				);
+			}
+
+			if ( ! isset( $json_arr[ $row['city_code'] ]['districts'][ $row['district_code'] ]['wards'][ $row['ward_code'] ] ) ) {
+				$json_arr[ $row['city_code'] ]['districts'][ $row['district_code'] ]['wards'][ $row['ward_code'] ] = array(
+					'name' => $row['ward_name'],
+				);
+			}
 		}
+
+		$json_writer = fopen( sprintf( '%s/outputs/all.json', dirname( DIAGIOIHANHCHINH_PLUGIN_FILE ) ), 'w' );
+		fwrite( $json_writer, json_encode( $json_arr ) );
+		fclose( $json_writer );
 	}
 }
