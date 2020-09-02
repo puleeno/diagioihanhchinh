@@ -36,6 +36,7 @@ class Diagioihanhchinh {
 	protected function includes() {
 		require_once dirname( __FILE__ ) . '/class-diagioihanhchinh-common.php';
 		require_once dirname( __FILE__ ) . '/class-diagioihanhchinh-taxonomies.php';
+		require_once dirname( __FILE__ ) . '/class-diagioihanhchinh-fetcher.php';
 
 		require_once dirname( __FILE__ ) . '/class-diagioihanhchinh-install.php';
 	}
