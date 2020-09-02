@@ -13,6 +13,31 @@ class Diagioihanhchinh_Taxonomies {
 			);
 			return;
 		}
+
+		$this->register_first_tier( $applied_post_types );
+		$this->register_second_tier( $applied_post_types );
+		$this->register_third_tier( $applied_post_types );
+	}
+
+	public function register_first_tier( $applied_post_types ) {
+		$labels        = array(
+			'name' => __( 'City', 'diagioihanhchinh' ),
+		);
+		$tinhthanhargs = apply_filters(
+			'diagioihanhchinh_tinhthanh_args',
+			array(
+				'labels' => $labels,
+				'public' => true,
+			)
+		);
+
+		register_taxonomy( 'tinhthanh', $applied_post_types, $tinhthanhargs );
+	}
+
+	public function register_second_tier( $applied_post_types ) {
+	}
+
+	public function register_third_tier( $applied_post_types ) {
 	}
 }
 
