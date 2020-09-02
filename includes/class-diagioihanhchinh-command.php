@@ -53,13 +53,32 @@ class Diagioihanhchinh_Command {
 	}
 
 	protected function generate_json( $spreadsheet ) {
-		if (!is_a($spreadsheet, Spreadsheet::class)) {
+		if ( ! is_a( $spreadsheet, Spreadsheet::class ) ) {
 			echo 'the data must be an instance of Spreadsheet';
 			return;
 		}
-		$opened_sheet = $spreadsheet->getSheet(0);
-		$rows = $opened_sheet->toArray();
+		$opened_sheet   = $spreadsheet->getSheet( 0 );
+		$rows           = $opened_sheet->toArray();
+		$mapping_header = array(
+			'Tỉnh Thành Phố' => 'city_name',
+			'Mã TP'          => 'city_code',
+			'Quận Huyện'     => 'district_name',
+			'Mã QH'          => 'district_code',
+			'Phường Xã'      => 'ward_name',
+			'Mã PX'          => 'ward_code',
+			'Cấp'            => 'level',
+			'Tên Tiếng Anh'  => 'english_name',
+		);
+		$header         = array_values( $mapping_header );
+		if ( $header ) {
+			unset( $rows[0] );
+		}
+		$json_arr = array();
 
-		var_dump($rows[1]);die;
+		foreach ( $rows as $row ) {
+			$row = array_combine( $header, $row );
+			var_dump( $row );
+			die;
+		}
 	}
 }
