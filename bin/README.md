@@ -14,7 +14,11 @@ CLI
 
 Để thực hiện generate data bạn thực thi `diagioihanhchinh` với action `generate`
 
-Syntax: ```./bin/diagioihanhchinh generate --format=<DATA FORMAT>```
+Syntax:
+
+```
+./bin/diagioihanhchinh generate --format=<DATA FORMAT>
+```
 
 Với DATA FORMAT là các định dạng được hỗ trợ bên dưới. Mặc định là `json`
 
