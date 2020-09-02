@@ -117,17 +117,15 @@ class Diagioihanhchinh_Fetcher {
 		$xls  = $this->download_xls( $data );
 
 		$output = fopen( $output_xls, 'w' );
-		@fwrite( $output, $xls );
-
-		// Close temporary file
-		@fclose( $output_xls );
+		if ( $output ) {
+			@fwrite( $output, $xls );
+			// Close temporary file
+			@fclose( $output );
+		} else {
+			Logger::get( 'diagioihanhchinh' )
+				->warning( 'XLS data file from outputs is invalid to get content' );
+		}
 	}
-
-	public function read_xls() {
-
-		return $output_xls;
-	}
-
 
 	public function fetch() {
 		$output_xls = sprintf( '%s/outputs/data.xls', dirname( DIAGIOIHANHCHINH_PLUGIN_FILE ) );
