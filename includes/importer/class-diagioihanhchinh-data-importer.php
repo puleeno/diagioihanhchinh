@@ -173,9 +173,10 @@ class Diagioihanhchinh_Data_Importer {
 					$cached_locations[ $orgdistrict_id ] = $term_id;
 
 					$this->add_new_term_to_cache( $cached_location_id, $orgdistrict_id, $term_id, $cached_locations );
+					$this->insert_flag_orgid_taxomnomy_meta_to_reverse( $taxonomy, $orgdistrict_id, $term_id );
 				}
 			}
-			$this->import_from_wards( $district['wards'], $orgdistrict_id, $orgdistrict_id );
+			$this->import_from_wards( $district['wards'], $orgcity_id, $orgdistrict_id );
 		}
 	}
 
@@ -204,6 +205,7 @@ class Diagioihanhchinh_Data_Importer {
 					$cached_locations[ $orgward_id ] = $term_id;
 
 					$this->add_new_term_to_cache( $cached_location_id, $orgward_id, $term_id, $cached_locations );
+					$this->insert_flag_orgid_taxomnomy_meta_to_reverse( $taxonomy, $orgward_id, $term_id );
 				}
 			}
 		}
