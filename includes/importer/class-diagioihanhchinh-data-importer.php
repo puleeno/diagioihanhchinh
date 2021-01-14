@@ -77,7 +77,7 @@ class Diagioihanhchinh_Data_Importer {
 		$reverse_key = sprintf( 'dghc_%s_%s', $taxonomy, $orgid );
 
 		return update_term_meta(
-			$orgid,
+			$term_id,
 			$reverse_key,
 			true
 		);
@@ -107,10 +107,10 @@ class Diagioihanhchinh_Data_Importer {
 			}
 			$term_taxonomy = wp_insert_term( $name, $taxonomy, $args );
 			if ( ! is_wp_error( $term_taxonomy ) ) {
-				return $term_taxonomy['term_id'];
+				return intval( $term_taxonomy['term_id'] );
 			}
 		} else {
-			return $term_id['term_id'];
+			return intval( $term_id['term_id'] );
 		}
 
 		return false;
@@ -130,9 +130,11 @@ class Diagioihanhchinh_Data_Importer {
 					continue;
 				}
 				$cached_locations = $this->get_cached_location_data( $cached_location_id );
-				$term_id          = isset( $cached_locations[ $orgcity_id ] ) && term_exists( $orgcity_id )
-					? $cached_locations[ $orgcity_id ]
-					: $this->insert_term( $city['name'], $taxonomy );
+				if ( isset( $cached_locations[ $orgcity_id ] ) && term_exists( $cached_locations[ $orgcity_id ] ) ) {
+					$term_id = $cached_locations[ $orgcity_id ];
+				} else {
+					$term_id = $this->insert_term( $city['name'], $taxonomy );
+				}
 
 				if ( ! isset( $cached_locations[ $orgcity_id ] ) ) {
 					$cached_locations[ $orgcity_id ] = $term_id;
@@ -161,9 +163,11 @@ class Diagioihanhchinh_Data_Importer {
 				$cached_locations    = $this->get_cached_location_data( $cached_location_id );
 				$parent_city_term_id = $this->reverse_term_id_from_orgid_and_taxonomy( $args['parent'], $orgcity_id );
 
-				$term_id = isset( $cached_locations[ $orgdistrict_id ] ) && term_exists( $orgdistrict_id )
-					? $cached_locations[ $orgdistrict_id ]
-					: $this->insert_term( $district['name'], $taxonomy, $parent_city_term_id );
+				if ( isset( $cached_locations[ $orgdistrict_id ] ) && term_exists( $cached_locations[ $orgdistrict_id ] ) ) {
+					$term_id = $cached_locations[ $orgdistrict_id ];
+				} else {
+					$term_id = $this->insert_term( $district['name'], $taxonomy, $parent_city_term_id );
+				}
 
 				if ( ! isset( $cached_locations[ $orgdistrict_id ] ) ) {
 					$cached_locations[ $orgdistrict_id ] = $term_id;
@@ -190,9 +194,11 @@ class Diagioihanhchinh_Data_Importer {
 
 				$cached_locations        = $this->get_cached_location_data( $cached_location_id );
 				$parent_district_term_id = $this->reverse_term_id_from_orgid_and_taxonomy( $args['parent'], $orgdistrict_id );
-				$term_id                 = isset( $cached_locations[ $orgward_id ] ) && term_exists( $orgward_id )
-					? $cached_locations[ $orgward_id ]
-					: $this->insert_term( $ward['name'], $taxonomy, $parent_district_term_id );
+				if ( isset( $cached_locations[ $orgward_id ] ) && term_exists( $cached_locations[ $orgward_id ] ) ) {
+					$term_id = $cached_locations[ $orgward_id ];
+				} else {
+					$term_id = $this->insert_term( $ward['name'], $taxonomy, $parent_district_term_id );
+				}
 
 				if ( ! isset( $cached_locations[ $orgward_id ] ) ) {
 					$cached_locations[ $orgward_id ] = $term_id;
