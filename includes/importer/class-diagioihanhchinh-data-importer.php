@@ -94,7 +94,7 @@ class Diagioihanhchinh_Data_Importer {
 			return;
 		}
 
-		foreach($all_locations as $city_id => $city) {
+		foreach($all_locations as $orgcity_id => $city) {
 			foreach($city_taxonomies as $taxonomy => $arg) {
 				$cached_location_id = $this->get_cached_location_id($taxonomy, 1);
 				if ($cached_location_id <= 0) {
@@ -102,26 +102,26 @@ class Diagioihanhchinh_Data_Importer {
 					continue;
 				}
 				$cached_locations = $this->get_cached_location_data($cached_location_id);
-				$term_id          = isset($cached_locations[$city_id]) ? $cached_locations[$city_id] : $this->insert_term($name, $taxonomy);
+				$term_id          = isset($cached_locations[$orgcity_id]) ? $cached_locations[$orgcity_id] : $this->insert_term($name, $taxonomy);
 
-				if (!isset($cached_locations[$city_id])) {
-					$cached_locations[$city_id] = $term_id;
+				if (!isset($cached_locations[$orgcity_id])) {
+					$cached_locations[$orgcity_id] = $term_id;
 
-					$this->add_new_term_to_cache($post_id, $city_id, $term_id, $cached_locations);
+					$this->add_new_term_to_cache($post_id, $orgcity_id, $term_id, $cached_locations);
 				}
 			}
-			$this->import_from_districts($city['districts']);
+			$this->import_from_districts($city['districts'], $orgcity_id);
 		}
 	}
 
-	public function import_from_districts($districts) {
-		foreach($districts as $district_id => $district) {
-			$this->import_from_wards($district['wards']);
+	public function import_from_districts($districts, $orgcity_id) {
+		foreach($districts as $orgdistrict_id => $district) {
+			$this->import_from_wards($district['wards'], $orgcity_id, $orgdistrict_id);
 		}
 	}
 
-	public function import_from_wards($wards) {
-		foreach($wards as $ward_id => $ward) {
+	public function import_from_wards($wards, $orgcity_id, $orgdistrict_id) {
+		foreach($wards as $orgward_id => $ward) {
 		}
 	}
 }
