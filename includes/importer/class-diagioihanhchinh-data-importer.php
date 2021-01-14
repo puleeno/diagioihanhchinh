@@ -71,10 +71,33 @@ class Diagioihanhchinh_Data_Importer {
 		update_post_meta($post_id, static::CACHED_META_KEY, $cached_locations);
 	}
 
+	protected function insert_flag_orgid_taxomnomy_meta_to_reverse($taxonomy, $orgid, $term_id) {
+		$reverse_key = sprintf('dghc_%s_%s', $taxonomy, $orgid);
+
+		return update_term_meta(
+			$orgid,
+			$reverse_key,
+			true
+		);
+	}
+
+	protected function reverse_term_id_from_orgid_and_taxonomy($taxonomy, $orgid) {
+		global $wpdb;
+
+		$reverse_key = sprintf('dghc_%s_%s', $taxonomy, $orgid);
+
+		$sql = $wpdb->prepare("SELECT tm.term_id FROM {$wpdb->termmeta} tm
+			WHERE tm.meta_key=%s",
+			$reverse_key
+		);
+
+		return intval($wpdb->get_var($sql));
+	}
+
 	protected function insert_term($name, $taxonomy, $parent_taxonomy_id = null) {
 		$term_id = term_exists($name, $taxonomy, $parent_taxonomy_id);
 
-		if (!$term_id) {
+		if (empty($term_id)) {
 			$args = array();
 			if ($parent_taxonomy_id > 0) {
 				$args['parent'] = $parent_taxonomy_id;
@@ -83,6 +106,8 @@ class Diagioihanhchinh_Data_Importer {
 			if (!is_wp_error($term_taxonomy)) {
 				return $term_taxonomy['term_id'];
 			}
+		} else {
+			return $term_id['term_id'];
 		}
 
 		return false;
@@ -95,19 +120,22 @@ class Diagioihanhchinh_Data_Importer {
 		}
 
 		foreach($all_locations as $orgcity_id => $city) {
-			foreach($city_taxonomies as $taxonomy => $arg) {
-				$cached_location_id = $this->get_cached_location_id($taxonomy, 1);
+			foreach(array_keys($city_taxonomies) as $taxonomy) {
+				$cached_location_id = $this->get_cached_location_id($taxonomy, $city['level']);
 				if ($cached_location_id <= 0) {
 					error_log(spintf('Không thể tạo data cache cho location `%s`', $cached_option_key));
 					continue;
 				}
 				$cached_locations = $this->get_cached_location_data($cached_location_id);
-				$term_id          = isset($cached_locations[$orgcity_id]) ? $cached_locations[$orgcity_id] : $this->insert_term($name, $taxonomy);
+				$term_id          = isset($cached_locations[$orgcity_id]) && term_exists($orgcity_id)
+					? $cached_locations[$orgcity_id]
+					: $this->insert_term($city['name'], $taxonomy);
 
 				if (!isset($cached_locations[$orgcity_id])) {
 					$cached_locations[$orgcity_id] = $term_id;
 
-					$this->add_new_term_to_cache($post_id, $orgcity_id, $term_id, $cached_locations);
+					$this->add_new_term_to_cache($cached_location_id, $orgcity_id, $term_id, $cached_locations);
+					$this->insert_flag_orgid_taxomnomy_meta_to_reverse($taxonomy, $orgcity_id, $term_id);
 				}
 			}
 			$this->import_from_districts($city['districts'], $orgcity_id);
@@ -115,13 +143,60 @@ class Diagioihanhchinh_Data_Importer {
 	}
 
 	public function import_from_districts($districts, $orgcity_id) {
+		$district_taxonomies = Diagioihanhchinh::get_registered_locations(2);
+		if (empty($district_taxonomies)) {
+			return;
+		}
 		foreach($districts as $orgdistrict_id => $district) {
-			$this->import_from_wards($district['wards'], $orgcity_id, $orgdistrict_id);
+			foreach($district_taxonomies as $taxonomy => $args) {
+				$cached_location_id = $this->get_cached_location_id($taxonomy, $district['level']);
+				if ($cached_location_id <= 0) {
+					error_log(spintf('Không thể tạo data cache cho location `%s`', $cached_option_key));
+					continue;
+				}
+
+				$cached_locations    = $this->get_cached_location_data($cached_location_id);
+				$parent_city_term_id = $this->reverse_term_id_from_orgid_and_taxonomy($args['parent'], $orgcity_id);
+
+				$term_id             = isset($cached_locations[$orgdistrict_id]) && term_exists($orgdistrict_id)
+					? $cached_locations[$orgdistrict_id]
+					: $this->insert_term($district['name'], $taxonomy, $parent_city_term_id);
+
+				if (!isset($cached_locations[$orgdistrict_id])) {
+					$cached_locations[$orgdistrict_id] = $term_id;
+
+					$this->add_new_term_to_cache($cached_location_id, $orgdistrict_id, $term_id, $cached_locations);
+				}
+			}
+			$this->import_from_wards($district['wards'], $orgdistrict_id, $orgdistrict_id);
 		}
 	}
 
 	public function import_from_wards($wards, $orgcity_id, $orgdistrict_id) {
+		$ward_taxonomies = Diagioihanhchinh::get_registered_locations(3);
+		if (empty($ward_taxonomies)) {
+			return;
+		}
 		foreach($wards as $orgward_id => $ward) {
+			foreach($ward_taxonomies as $taxonomy => $args) {
+				$cached_location_id = $this->get_cached_location_id($taxonomy, 3);
+				if ($cached_location_id <= 0) {
+					error_log(spintf('Không thể tạo data cache cho location `%s`', $cached_option_key));
+					continue;
+				}
+
+				$cached_locations    = $this->get_cached_location_data($cached_location_id);
+				$parent_district_term_id = $this->reverse_term_id_from_orgid_and_taxonomy($args['parent'], $orgdistrict_id);
+				$term_id             = isset($cached_locations[$orgward_id]) && term_exists($orgward_id)
+					? $cached_locations[$orgward_id]
+					: $this->insert_term($ward['name'], $taxonomy, $parent_district_term_id);
+
+				if (!isset($cached_locations[$orgward_id])) {
+					$cached_locations[$orgward_id] = $term_id;
+
+					$this->add_new_term_to_cache($cached_location_id, $orgward_id, $term_id, $cached_locations);
+				}
+			}
 		}
 	}
 }
