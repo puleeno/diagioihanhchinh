@@ -43,6 +43,8 @@ class Diagioihanhchinh {
 		require_once dirname( __FILE__ ) . '/integration/class-diagioihanhchinh-wordland-integration.php';
 
 		// Create WP CLI commands
+		require_once dirname( __FILE__ ) . '/importer/class-diagioihanhchinh-data-importer.php';
+		require_once dirname( __FILE__ ) . '/importer/class-diagioihanhchinh-geo-data-importer.php';
 		require_once dirname( __FILE__ ) . '/class-diagioihanhchinh-command.php';
 	}
 
