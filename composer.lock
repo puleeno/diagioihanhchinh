@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "c8d7cb9cb8e3d3433b28f225ed3abde9",
+    "content-hash": "a34088b5f1ff414ed6aae7a2cccd0c2c",
     "packages": [
         {
             "name": "kevinlebrun/colors.php",
@@ -266,6 +266,42 @@
                 "scripting"
             ],
             "time": "2019-07-10T02:37:11+00:00"
+        },
+        {
+            "name": "phayes/geophp",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/phayes/geoPHP.git",
+                "reference": "685562416ec6d22b9b3927e02ca0ddacf84ca646"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/phayes/geoPHP/zipball/685562416ec6d22b9b3927e02ca0ddacf84ca646",
+                "reference": "685562416ec6d22b9b3927e02ca0ddacf84ca646",
+                "shasum": ""
+            },
+            "require-dev": {
+                "phpunit/phpunit": "4.1.*"
+            },
+            "type": "library",
+            "autoload": {
+                "classmap": [
+                    "geoPHP.inc"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "GPL-2 or New-BSD"
+            ],
+            "authors": [
+                {
+                    "name": "Patrick Hayes"
+                }
+            ],
+            "description": "GeoPHP is a open-source native PHP library for doing geometry operations. It is written entirely in PHP and can therefore run on shared hosts. It can read and write a wide variety of formats: WKT (including EWKT), WKB (including EWKB), GeoJSON, KML, GPX, GeoRSS). It works with all Simple-Feature geometries (Point, LineString, Polygon, GeometryCollection etc.) and can be used to get centroids, bounding-boxes, area, and a wide variety of other useful information.",
+            "homepage": "https://github.com/phayes/geoPHP",
+            "time": "2016-03-04T05:42:29+00:00"
         },
         {
             "name": "phpoffice/phpspreadsheet",
@@ -580,10 +616,12 @@
     "stability-flags": {
         "ramphor/locations": 20,
         "ramphor/facades": 20,
-        "nategood/commando": 20
+        "nategood/commando": 20,
+        "phayes/geophp": 20
     },
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": [],
-    "platform-dev": []
+    "platform-dev": [],
+    "plugin-api-version": "1.1.0"
 }

@@ -14,7 +14,7 @@
         "ramphor/locations": "dev-master",
         "ramphor/facades": "dev-master",
         "phpoffice/phpspreadsheet": "1.8.2",
-        "nategood/commando": "dev-master"
-    },
-    "bin": ["/bin/diagioihanhchinh"]
+        "nategood/commando": "dev-master",
+        "phayes/geophp": "dev-master"
+    }
 }
