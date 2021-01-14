@@ -37,7 +37,6 @@ class Diagioihanhchinh {
 	protected function includes() {
 		require_once dirname( __FILE__ ) . '/class-diagioihanhchinh-common.php';
 		require_once dirname( __FILE__ ) . '/class-diagioihanhchinh-data.php';
-		require_once dirname( __FILE__ ) . '/class-diagioihanhchinh-taxonomies.php';
 		require_once dirname( __FILE__ ) . '/class-diagioihanhchinh-fetcher.php';
 
 		require_once dirname( __FILE__ ) . '/class-diagioihanhchinh-install.php';
@@ -55,6 +54,8 @@ class Diagioihanhchinh {
 
 		add_action( 'plugins_loaded', array( $this, 'setup_logger' ) );
 		add_action( 'plugins_loaded', array( $this, 'load_integrations' ) );
+
+		add_filter( 'wp_unique_term_slug_is_bad_slug', array( $this, 'allow_duplicate_slug' ), 10, 3 );
 
 		if ( class_exists( WP_CLI::class ) ) {
 			add_action( 'cli_init', array( $this, 'register_commands' ) );
@@ -111,5 +112,12 @@ class Diagioihanhchinh {
 			return static::$location_taxonomies[ $level ];
 		}
 		return false;
+	}
+
+	public function allow_duplicate_slug( $needs_suffix, $slug, $term ) {
+		if ( in_array( $term->taxonomy, array( 'administrative_area_level_2', 'administrative_area_level_3' ) ) ) {
+			return '';
+		}
+		return $needs_suffix;
 	}
 }
