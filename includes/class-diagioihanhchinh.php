@@ -5,6 +5,7 @@ use Ramphor\Logger\Logger;
 
 class Diagioihanhchinh {
 	protected static $instance;
+	protected static $location_taxonomies = array();
 
 	public static function get_instance() {
 		if ( is_null( self::$instance ) ) {
@@ -35,6 +36,7 @@ class Diagioihanhchinh {
 
 	protected function includes() {
 		require_once dirname( __FILE__ ) . '/class-diagioihanhchinh-common.php';
+		require_once dirname( __FILE__ ) . '/class-diagioihanhchinh-data.php';
 		require_once dirname( __FILE__ ) . '/class-diagioihanhchinh-taxonomies.php';
 		require_once dirname( __FILE__ ) . '/class-diagioihanhchinh-fetcher.php';
 
@@ -68,5 +70,46 @@ class Diagioihanhchinh {
 
 	public function register_commands() {
 		WP_CLI::add_command('dghc', Diagioihanhchinh_Command::class);
+	}
+
+	public static function register_location_taxonomy($tax_name, $level = 1, $parent_taxonomy = null) {
+		if ($level < 0 && $level > 3) {
+			// The level is invalid
+			return;
+		}
+		if (!isset(static::$location_taxonomies[$level])) {
+			static::$location_taxonomies[$level] = array();
+		}
+
+		$taxs = &static::$location_taxonomies[$level];
+		if ($level > 1) {
+			if (!$parent_taxonomy) {
+				error_log('Địa danh có level cấp huyện, xã bắt buộc phải set `parent_taxonomy`');
+				return;
+			}
+			$parent_level = $level - 1;
+
+			if (!isset(static::$location_taxonomies[$parent_level][$parent_taxonomy])) {
+				error_log('`parent_taxonomy` của ' . $tax_name . ' không hợp lệ');
+				return;
+			}
+		}
+
+		$taxs[$tax_name]                           = array( 'parent' => $parent_taxonomy );
+		static::$location_taxonomies['registed'][] = $tax_name;
+		static::$location_taxonomies[$tax_name] = array(
+			'level' => $level,
+			'parent' => $parent_taxonomy
+		);
+	}
+
+	public static function get_registered_locations($level = null) {
+		if (is_null($level)) {
+			return static::$location_taxonomies;
+		}
+		if (isset(static::$location_taxonomies[$level])) {
+			return static::$location_taxonomies[$level];
+		}
+		return false;
 	}
 }

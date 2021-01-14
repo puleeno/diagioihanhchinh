@@ -2,6 +2,7 @@
 class Diagioihanhchinh_Wordland_Integration {
 	public function __construct() {
 		add_action( 'after_setup_theme', array( $this, 'change_location_labels' ) );
+		add_action( 'after_setup_theme', array( $this, 'register_wordland_locations' ) );
 	}
 
 
@@ -53,5 +54,11 @@ class Diagioihanhchinh_Wordland_Integration {
 				return $level_args;
 			}
 		);
+	}
+
+	public function register_wordland_locations() {
+		Diagioihanhchinh::register_location_taxonomy('administrative_area_level_1', 1);
+		Diagioihanhchinh::register_location_taxonomy('administrative_area_level_2', 2, 'administrative_area_level_1');
+		Diagioihanhchinh::register_location_taxonomy('administrative_area_level_3', 3, 'administrative_area_level_2');
 	}
 }
