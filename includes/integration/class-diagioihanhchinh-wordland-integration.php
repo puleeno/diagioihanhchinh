@@ -57,7 +57,7 @@ class Diagioihanhchinh_Wordland_Integration {
 	}
 
 	public function register_wordland_locations() {
-		Diagioihanhchinh::register_location_taxonomy('administrative_area_level_1', 1);
+		Diagioihanhchinh::register_location_taxonomy( 'administrative_area_level_1', 1 );
 		Diagioihanhchinh::register_location_taxonomy(
 			'administrative_area_level_2',
 			2,
