@@ -195,16 +195,14 @@ XML;
 			foreach ( $district_taxonomy_info['childs'] as $ward_taxonomy ) {
 				$ward_tt = term_exists( $ward_name, $ward_taxonomy, $district_term_id );
 				if ( ! $ward_tt ) {
-					if ( ! $district_tt ) {
-						error_log( sprintf( 'Không tìm thấy phường/xã "%s" trong CSDL', $ward_name ) );
-						continue;
-					}
+					error_log( sprintf( 'Không tìm thấy phường/xã "%s" trong CSDL', $ward_name ) );
+					continue;
 				}
 
 				do_action(
 					"diagioihanhchinh_insert_{$ward_taxonomy}_term_geodata",
 					$polygon,
-					get_term( $district_term_id ),
+					get_term( $ward_tt['term_id'] ),
 					$ward_geodata
 				);
 			}
