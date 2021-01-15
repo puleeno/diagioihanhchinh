@@ -43,6 +43,11 @@ class Diagioihanhchinh {
 
 		require_once dirname( __FILE__ ) . '/integration/class-diagioihanhchinh-wordland-integration.php';
 
+		$geophp_inc = sprintf( '%s/vendor/phayes/geophp/geoPHP.inc', dirname( DIAGIOIHANHCHINH_PLUGIN_FILE ) );
+		if ( file_exists( $geophp_inc ) ) {
+			include_once $geophp_inc;
+		}
+
 		// Create WP CLI commands
 		require_once dirname( __FILE__ ) . '/importer/class-diagioihanhchinh-data-importer.php';
 		require_once dirname( __FILE__ ) . '/importer/class-diagioihanhchinh-geo-data-importer.php';

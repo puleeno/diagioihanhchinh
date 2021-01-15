@@ -7,4 +7,12 @@ class Diagioihanhchinh_Command {
 		$importer = new Diagioihanhchinh_Data_Importer();
 		$importer->import();
 	}
+
+	/**
+	 * Nhập thông tin Geo data cho các địa giới hành chính đã được tạo
+	 */
+	public function import_geodata() {
+		$importer = new Diagioihanhchinh_Geo_Data_Importer();
+		$importer->import();
+	}
 }
