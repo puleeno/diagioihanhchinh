@@ -63,7 +63,8 @@ class Diagioihanhchinh_Data {
 
 		$replaced_name = str_replace(
 			array(
-				'Thành phố',
+				'Thành phố ',
+				'Thị trấn ',
 				'Tỉnh ',
 				'Huyện ',
 				'Xã ',

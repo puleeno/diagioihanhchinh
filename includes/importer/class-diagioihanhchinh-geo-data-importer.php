@@ -189,8 +189,14 @@ XML;
 		}
 
 		foreach ( $ward_geodatas as $ward_name => $ward_geodata ) {
-			$ward_name = Diagioihanhchinh_Data::clean_location_name( $ward_name );
-			$polygon   = geoPHP::load( $ward_geodata, 'kml' );
+			$ward_name   = Diagioihanhchinh_Data::clean_location_name( $ward_name );
+			$kml_content = <<<XML
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  {$ward_geodata}
+</kml>
+XML;
+			$polygon     = geoPHP::load( $kml_content, 'kml' );
 
 			foreach ( $district_taxonomy_info['childs'] as $ward_taxonomy ) {
 				$ward_tt = term_exists( $ward_name, $ward_taxonomy, $district_term_id );

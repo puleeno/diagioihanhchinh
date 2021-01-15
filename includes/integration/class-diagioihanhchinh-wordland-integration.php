@@ -114,6 +114,10 @@ class Diagioihanhchinh_Wordland_Integration {
 		if ( is_a( $multipolygon, MultiPolygon::class ) ) {
 			$insert_string = $wpdb->_real_escape( $multipolygon->out( 'ewkb' ) );
 			return "GeomFromWKB('$insert_string')";
+		} elseif ( is_a( $multipolygon, Polygon::class ) ) {
+			$insert_string = $wpdb->_real_escape( $multipolygon->out( 'ewkb' ) );
+
+			return "GeomFromWKB('$insert_string')";
 		}
 	}
 
