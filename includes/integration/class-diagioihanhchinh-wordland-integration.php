@@ -92,10 +92,16 @@ class Diagioihanhchinh_Wordland_Integration {
 			4
 		);
 		add_action(
-			'diagioihanhchinh_insert_administrative_area_level_1_districts_term_geodata',
-			array( $this, 'update_district_term_geodata' ),
+			'diagioihanhchinh_insert_administrative_area_level_2_term_geodata',
+			array( $this, 'update_term_geodata' ),
 			10,
-			5
+			3
+		);
+		add_action(
+			'diagioihanhchinh_insert_administrative_area_level_3_term_geodata',
+			array( $this, 'update_term_geodata' ),
+			10,
+			3
 		);
 	}
 
@@ -134,35 +140,5 @@ class Diagioihanhchinh_Wordland_Integration {
 		}
 
 		return $wpdb->query( $sql );
-	}
-
-	public function update_district_term_geodata( $multipolygon, $district_name, $city_name, $parent_taxonomy, $kml_content ) {
-		$parent_taxonomy_info = Diagioihanhchinh::get_registered_locations( $parent_taxonomy );
-		if ( ! isset( $parent_taxonomy_info['childs'] ) ) {
-			error_log( sprintf( 'Not found child location of "%s" taxonomy', $parent_taxonomy ) );
-			return;
-		}
-		$parent_tt = term_exists( $city_name, $parent_taxonomy );
-		if ( ! $parent_tt ) {
-			error_log( sprintf( 'Không tìm thấy tên thành phố "%s" trong CSDL', $city_name ) );
-			return;
-		}
-
-		foreach ( $parent_taxonomy_info['childs'] as $taxonomy ) {
-			$district_name = Diagioihanhchinh_Data::clean_location_name( $district_name );
-			$district_tt   = term_exists( $district_name, $taxonomy, $parent_tt['term_id'] );
-
-			if ( ! $district_tt ) {
-				error_log( sprintf( 'Không tìm thấy huyện "%s" trong CSDL', $district_name ) );
-				continue;
-			}
-
-			// $multipolygon, $term, $kml_content, $cached_kml_file
-			$this->update_term_geodata(
-				$multipolygon,
-				get_term( $district_tt['term_id'] ),
-				$kml_content
-			);
-		}
 	}
 }

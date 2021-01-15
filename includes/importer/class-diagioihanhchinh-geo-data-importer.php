@@ -50,7 +50,10 @@ class Diagioihanhchinh_Geo_Data_Importer {
 					'key'  => $district_key,
 				);
 			}
-			$districts[ $district_name ]['wards_kml'][] = $ward_kml->asXML();
+			if ( ! isset( $districts[ $district_name ]['wards_kml'] ) ) {
+				$districts[ $district_name ]['wards_kml'] = array();
+			}
+			$districts[ $district_name ]['wards_kml'][ (string) $ward_kml->name ] = $ward_kml->asXML();
 		}
 
 		return $districts;
@@ -100,13 +103,28 @@ class Diagioihanhchinh_Geo_Data_Importer {
 			$cached_kml_file
 		);
 
-		$grouped_district_geodatas = $this->group_ward_locations_to_districts( $kml_content );
-		$this->read_district_geodatas( $grouped_district_geodatas, $term->taxonomy, $term->name );
+		$this->read_district_geodatas(
+			$this->group_ward_locations_to_districts( $kml_content ),
+			$term->taxonomy,
+			$term->name
+		);
 	}
 
 
 	protected function read_district_geodatas( $grouped_district_geodatas, $taxonomy, $city_name ) {
 		if ( empty( $grouped_district_geodatas ) ) {
+			return;
+		}
+
+		$parent_tt = term_exists( $city_name, $taxonomy );
+		if ( ! $parent_tt ) {
+			error_log( sprintf( 'Không tìm thấy tên thành phố "%s" trong CSDL', $city_name ) );
+			return;
+		}
+
+		$taxonomy_info = Diagioihanhchinh::get_registered_locations( $taxonomy );
+		if ( ! isset( $taxonomy_info['childs'] ) ) {
+			error_log( sprintf( 'Not found child location of "%s" taxonomy', $taxonomy ) );
 			return;
 		}
 
@@ -139,14 +157,57 @@ XML;
 			$parser       = new KML();
 			$multipolygon = $parser->read( $kml_content, true );
 
-			do_action(
-				"diagioihanhchinh_insert_{$taxonomy}_districts_term_geodata",
-				$multipolygon,
-				$district_name,
-				$city_name,
-				$taxonomy,
-				$kml_content
-			);
+			foreach ( $taxonomy_info['childs'] as $district_taxonomy ) {
+				$district_name = Diagioihanhchinh_Data::clean_location_name( $district_name );
+				$district_tt   = term_exists( $district_name, $district_taxonomy, $parent_tt['term_id'] );
+
+				if ( ! $district_tt ) {
+					error_log( sprintf( 'Không tìm thấy huyện "%s" trong CSDL', $district_name ) );
+					continue;
+				}
+
+				do_action(
+					"diagioihanhchinh_insert_{$district_taxonomy}_term_geodata",
+					$multipolygon,
+					get_term( $district_tt['term_id'] ),
+					$kml_content
+				);
+
+				$this->read_ward_geodata( $district_geodata['wards_kml'], $district_taxonomy, $district_tt['term_id'] );
+			}
+		}
+	}
+
+	public function read_ward_geodata( $ward_geodatas, $district_taxonomy, $district_term_id ) {
+		if ( empty( $ward_geodatas ) ) {
+			return;
+		}
+		$district_taxonomy_info = Diagioihanhchinh::get_registered_locations( $district_taxonomy );
+		if ( ! isset( $district_taxonomy_info['childs'] ) ) {
+			error_log( sprintf( 'Not found child location of "%s" taxonomy', $district_taxonomy ) );
+			return;
+		}
+
+		foreach ( $ward_geodatas as $ward_name => $ward_geodata ) {
+			$ward_name = Diagioihanhchinh_Data::clean_location_name( $ward_name );
+			$polygon   = geoPHP::load( $ward_geodata, 'kml' );
+
+			foreach ( $district_taxonomy_info['childs'] as $ward_taxonomy ) {
+				$ward_tt = term_exists( $ward_name, $ward_taxonomy, $district_term_id );
+				if ( ! $ward_tt ) {
+					if ( ! $district_tt ) {
+						error_log( sprintf( 'Không tìm thấy phường/xã "%s" trong CSDL', $ward_name ) );
+						continue;
+					}
+				}
+
+				do_action(
+					"diagioihanhchinh_insert_{$ward_taxonomy}_term_geodata",
+					$polygon,
+					get_term( $district_term_id ),
+					$ward_geodata
+				);
+			}
 		}
 	}
 }
