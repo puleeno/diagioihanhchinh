@@ -37,8 +37,18 @@ class Diagioihanhchinh_Geo_Data_Importer {
 		$cached_kml_file = sprintf( '%s/%s.kml', $kml_dir, $name );
 		if ( ! file_exists( $cached_kml_file ) ) {
 			$data_file = sprintf( '%s/data/kml/%s.kmz', $plugin_dir, $name );
-			$zip       = new ZipArchive();
-			$res       = $zip->open( $data_file );
+			if ( ! file_exists( $data_file ) ) {
+				error_log(
+					sprintf(
+						'Lỗi cập nhật geo data cho %s: lỗi tập tin data  "%s" không tồn tại',
+						$name,
+						$data_file
+					)
+				);
+				return false;
+			}
+			$zip = new ZipArchive();
+			$res = $zip->open( $data_file );
 			if ( $res === true ) {
 				$zip->extractTo( $kml_dir );
 				$zip->close();
