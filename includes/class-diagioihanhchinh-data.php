@@ -24,6 +24,12 @@ class Diagioihanhchinh_Data {
 		return preg_replace( array( '/[\s]/', '/_{2,}/' ), '_', $name );
 	}
 
+
+	/**
+	 * Format lại tên của địa danh dựa theo format từ data của cục thống kê
+	 *
+	 * @link https://www.gso.gov.vn/dmhc2015/Default.aspx
+	 */
 	public static function clean_location_name( $name ) {
 		/**
 		 * Fix name do not have whitespace
@@ -39,6 +45,21 @@ class Diagioihanhchinh_Data {
 		 * Ea H' Leo
 		 */
 		$name = preg_replace( '/(\w\') /', '$1', $name );
+
+		/**
+		 * Fix name has - character
+		 *
+		 * Bà Rịa – Vũng Tàu
+		 */
+		$name = str_replace(
+			array(
+				'Bà Rịa Vũng Tàu',
+			),
+			array(
+				'Bà Rịa – Vũng Tàu',
+			),
+			$name
+		);
 
 		$replaced_name = str_replace(
 			array(
