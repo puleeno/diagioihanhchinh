@@ -99,25 +99,9 @@ class Diagioihanhchinh_Data_Importer {
 
 	protected function insert_term( $name, $taxonomy, $parent_taxonomy_id = null ) {
 		if ( ! apply_filters( 'diagioihanhchinh_keep_location_level_text', false ) ) {
-			$name = str_replace(
-				array(
-					'Thành phố',
-					'Tỉnh ',
-					'Huyện ',
-					'Xã ',
-				),
-				array(
-					'TP',
-					'',
-					'',
-					'',
-				),
-				$name
-			);
+			$name = Diagioihanhchinh_Data::clean_location_name( $name );
 		}
 
-		// Remove whitespaces
-		$name    = trim( $name );
 		$term_id = term_exists( $name, $taxonomy, $parent_taxonomy_id );
 
 		if ( empty( $term_id ) ) {

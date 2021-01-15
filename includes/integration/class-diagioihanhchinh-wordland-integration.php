@@ -91,6 +91,12 @@ class Diagioihanhchinh_Wordland_Integration {
 			10,
 			4
 		);
+		add_action(
+			'diagioihanhchinh_insert_administrative_area_level_1_districts_term_geodata',
+			array( $this, 'update_district_term_geodata' ),
+			10,
+			5
+		);
 	}
 
 	protected function check_geodata_exits() {
@@ -105,10 +111,13 @@ class Diagioihanhchinh_Wordland_Integration {
 		}
 	}
 
-	public function update_term_geodata( $multipolygon, $term, $kml_content, $cached_kml_file ) {
+	public function update_term_geodata( $multipolygon, $term, $kml_content, $cached_kml_file = null ) {
 		global $wpdb;
 		$geodata_sql = $this->create_geodata_sql( $multipolygon );
 		if ( empty( $geodata_sql ) ) {
+			if ( is_null( $cached_kml_file ) ) {
+				$cached_kml_file = 'cache://district-' . Diagioihanhchinh_Data::create_location_key_from_name( $term->name );
+			}
 			error_log( sprintf( 'Geo data "%s" cho %s(%s) không hợp lệ', $cached_kml_file, $term->name, $term->taxonomy ) );
 			return;
 		}
@@ -125,5 +134,35 @@ class Diagioihanhchinh_Wordland_Integration {
 		}
 
 		return $wpdb->query( $sql );
+	}
+
+	public function update_district_term_geodata( $multipolygon, $district_name, $city_name, $parent_taxonomy, $kml_content ) {
+		$parent_taxonomy_info = Diagioihanhchinh::get_registered_locations( $parent_taxonomy );
+		if ( ! isset( $parent_taxonomy_info['childs'] ) ) {
+			error_log( sprintf( 'Not found child location of "%s" taxonomy', $parent_taxonomy ) );
+			return;
+		}
+		$parent_tt = term_exists( $city_name, $parent_taxonomy );
+		if ( ! $parent_tt ) {
+			error_log( sprintf( 'Không tìm thấy tên thành phố "%s" trong CSDL', $city_name ) );
+			return;
+		}
+
+		foreach ( $parent_taxonomy_info['childs'] as $taxonomy ) {
+			$district_name = Diagioihanhchinh_Data::clean_location_name( $district_name );
+			$district_tt   = term_exists( $district_name, $taxonomy, $parent_tt['term_id'] );
+
+			if ( ! $district_tt ) {
+				error_log( sprintf( 'Không tìm thấy huyện "%s" trong CSDL', $district_name ) );
+				continue;
+			}
+
+			// $multipolygon, $term, $kml_content, $cached_kml_file
+			$this->update_term_geodata(
+				$multipolygon,
+				get_term( $district_tt['term_id'] ),
+				$kml_content
+			);
+		}
 	}
 }

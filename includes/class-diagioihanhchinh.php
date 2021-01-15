@@ -99,6 +99,7 @@ class Diagioihanhchinh {
 				error_log( '`parent_taxonomy` của ' . $tax_name . ' không hợp lệ' );
 				return;
 			}
+			static::$location_taxonomies[ $parent_taxonomy ]['childs'][] = $tax_name;
 		}
 
 		$taxs[ $tax_name ]                         = array( 'parent' => $parent_taxonomy );
