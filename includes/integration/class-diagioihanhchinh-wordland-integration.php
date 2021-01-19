@@ -148,8 +148,14 @@ class Diagioihanhchinh_Wordland_Integration {
 			$location_names =$term->name;
 		}
 		$acii_name    = remove_accents($location_names);
-		$geo_eng_name = Diagioihanhchinh_Data::clean_location_name($term->name);
 		$zipcode      = '0000000000';
+
+		$geo_mapping_fields = Diagioihanhchinh_Geo_Data_Importer::get_geo_mapping_fields();
+		$geo_eng_name       = Diagioihanhchinh_Data::clean_location_name($term->name);
+		$geo_eng_name       = remove_accents($geo_eng_name);
+		if (isset($geo_mapping_fields[$geo_eng_name])) {
+			$geo_eng_name = $geo_mapping_fields[$geo_eng_name];
+		}
 
 		if ( empty( $geodata_sql ) ) {
 			if ( is_null( $cached_kml_file ) ) {
@@ -173,7 +179,7 @@ class Diagioihanhchinh_Wordland_Integration {
 				$term->term_id,
 				$location_names,
 				strtolower($acii_name),
-				$geo_eng_name,
+				remove_accents($geo_eng_name),
 				$zipcode
 			);
 		}

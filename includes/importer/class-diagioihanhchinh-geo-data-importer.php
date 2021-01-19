@@ -1,5 +1,14 @@
 <?php
 class Diagioihanhchinh_Geo_Data_Importer {
+	protected static $geo_mapping = array();
+
+	public function __construct() {
+		$mapping_config_file = sprintf('%s/data/geo/mapping.json', dirname(DIAGIOIHANHCHINH_PLUGIN_FILE));
+		if(file_exists($mapping_config_file)) {
+			static::$geo_mapping = json_decode(file_get_contents($mapping_config_file), true);
+		}
+	}
+
 	public function import() {
 		$support_geodata_taxonomies = apply_filters(
 			'diagioihanhchinh_administrative_area_level_1_support_geo_data',
@@ -30,6 +39,10 @@ class Diagioihanhchinh_Geo_Data_Importer {
 			$city_name = str_replace( ' - ', ' ', $city_name );
 			$this->read_geo_data_from_city_name( $city_name, $term );
 		}
+	}
+
+	public static function get_geo_mapping_fields() {
+		return static::$geo_mapping;
 	}
 
 	protected function group_ward_locations_to_districts( $kml_content ) {
