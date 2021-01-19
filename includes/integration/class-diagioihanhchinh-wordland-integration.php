@@ -115,12 +115,12 @@ class Diagioihanhchinh_Wordland_Integration {
 	protected function create_geodata_sql( $multipolygon ) {
 		global $wpdb;
 		if ( is_a( $multipolygon, MultiPolygon::class ) ) {
-			$insert_string = $wpdb->_real_escape( $multipolygon->out( 'json' ) );
-			return "ST_GeomFromGeoJSON('$insert_string')";
+			$insert_string = $wpdb->_real_escape( $multipolygon->out( 'wkt' ) );
+			return "ST_GeomFromText('$insert_string')";
 		} elseif ( is_a( $multipolygon, Polygon::class ) ) {
-			$insert_string = $wpdb->_real_escape( $multipolygon->out( 'json' ) );
+			$insert_string = $wpdb->_real_escape( $multipolygon->out( 'wkt' ) );
 
-			return "ST_GeomFromGeoJSON('$insert_string')";
+			return "ST_GeomFromText('$insert_string')";
 		}
 	}
 
