@@ -7,6 +7,9 @@ class Diagioihanhchinh_Wordland_Integration {
 		add_action( 'init', array( $this, 'create_data' ) );
 	}
 
+	protected function get_name_separator() {
+		return apply_filters('diagioihanhchinh_name_separator', ', ');
+	}
 
 	public function change_location_labels() {
 		add_filter(
@@ -112,18 +115,42 @@ class Diagioihanhchinh_Wordland_Integration {
 	protected function create_geodata_sql( $multipolygon ) {
 		global $wpdb;
 		if ( is_a( $multipolygon, MultiPolygon::class ) ) {
-			$insert_string = $wpdb->_real_escape( $multipolygon->out( 'ewkb' ) );
-			return "GeomFromWKB('$insert_string')";
+			$insert_string = $wpdb->_real_escape( $multipolygon->out( 'json' ) );
+			return "ST_GeomFromGeoJSON('$insert_string')";
 		} elseif ( is_a( $multipolygon, Polygon::class ) ) {
-			$insert_string = $wpdb->_real_escape( $multipolygon->out( 'ewkb' ) );
+			$insert_string = $wpdb->_real_escape( $multipolygon->out( 'json' ) );
 
-			return "GeomFromWKB('$insert_string')";
+			return "ST_GeomFromGeoJSON('$insert_string')";
 		}
+	}
+
+	protected function get_parent_names($parent_term_id, &$names = array()) {
+		$term  = get_term($parent_term_id);
+		if ($term && !is_wp_error($term)) {
+			array_push($names, $term->name);
+			if ($term->parent > 0) {
+				return $this->get_parent_names($term->parent, $names);
+			}
+		}
+		return $names;
 	}
 
 	public function update_term_geodata( $multipolygon, $term, $kml_content, $cached_kml_file = null ) {
 		global $wpdb;
 		$geodata_sql = $this->create_geodata_sql( $multipolygon );
+		if ($term->parent > 0) {
+			$location_names = $this->get_parent_names($term->parent);
+			array_unshift($location_names, $term->name);
+
+			$location_names = implode($this->get_name_separator(), $location_names);
+
+		} else {
+			$location_names =$term->name;
+		}
+		$acii_name    = remove_accents($location_names);
+		$geo_eng_name = Diagioihanhchinh_Data::clean_location_name($term->name);
+		$zipcode      = '0000000000';
+
 		if ( empty( $geodata_sql ) ) {
 			if ( is_null( $cached_kml_file ) ) {
 				$cached_kml_file = 'cache://district-' . Diagioihanhchinh_Data::create_location_key_from_name( $term->name );
@@ -133,13 +160,21 @@ class Diagioihanhchinh_Wordland_Integration {
 		}
 		if ( $this->check_geodata_exits() ) {
 			$sql = $wpdb->prepare(
-				"UPDATE {$wpdb->prefix}wordland_locations SET `term_id`=%d, `location`={$geodata_sql}",
-				$term->term_id
+				"UPDATE {$wpdb->prefix}wordland_locations SET `term_id`=%d, `location`={$geodata_sql}, `location_name`=%s, `ascii_name`=%s, `geo_eng_name`=%s, `zip_code`=%s",
+				$term->term_id,
+				$location_names,
+				strtolower($acii_name),
+				$geo_eng_name,
+				$zipcode
 			);
 		} else {
 			$sql = $wpdb->prepare(
-				"INSERT INTO {$wpdb->prefix}wordland_locations(`term_id`, `created_at`, `location` ) VALUES(%d, CURRENT_TIMESTAMP, {$geodata_sql})",
-				$term->term_id
+				"INSERT INTO {$wpdb->prefix}wordland_locations(`term_id`, `created_at`, `location`, `location_name`, `ascii_name`, `geo_eng_name`, `zip_code` ) VALUES(%d, CURRENT_TIMESTAMP, {$geodata_sql}, %s, %s, %s, %s)",
+				$term->term_id,
+				$location_names,
+				strtolower($acii_name),
+				$geo_eng_name,
+				$zipcode
 			);
 		}
 
