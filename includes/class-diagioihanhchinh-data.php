@@ -161,7 +161,8 @@ class Diagioihanhchinh_Data {
 			return false;
 		}
 
-		$term = array_unshift( $terms );
+		$term = array_shift( $terms );
+
 		return get_term( $term, $taxonomy );
 	}
 }

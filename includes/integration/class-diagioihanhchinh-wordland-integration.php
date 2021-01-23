@@ -110,8 +110,10 @@ class Diagioihanhchinh_Wordland_Integration {
 		);
 	}
 
-	protected function check_geodata_exits() {
-
+	protected function check_geodata_exits( $term_id ) {
+		global $wpdb;
+		$sql = $wpdb->prepare( "SELECT term_id FROM {$wpdb->prefix}wordland_locations WHERE term_id=%d", $term_id );
+		return intval( $wpdb->get_var( $sql ) ) > 0;
 	}
 
 	protected function create_geodata_sql( $multipolygon ) {
@@ -146,18 +148,10 @@ class Diagioihanhchinh_Wordland_Integration {
 			array_unshift( $location_names, $term->name );
 
 			$location_names = implode( $this->get_name_separator(), $location_names );
-
 		} else {
 			$location_names = $term->name;
 		}
 		$acii_name = remove_accents( $location_names );
-
-		$geo_mapping_fields = Diagioihanhchinh_Geo_Data_Importer::get_geo_mapping_fields();
-		$geo_eng_name       = Diagioihanhchinh_Data::clean_location_name( $term->name );
-		$geo_eng_name       = remove_accents( $geo_eng_name );
-		if ( isset( $geo_mapping_fields[ $geo_eng_name ] ) ) {
-			$geo_eng_name = $geo_mapping_fields[ $geo_eng_name ];
-		}
 
 		if ( empty( $geodata_sql ) ) {
 			if ( is_null( $cached_kml_file ) ) {
@@ -166,23 +160,24 @@ class Diagioihanhchinh_Wordland_Integration {
 			error_log( sprintf( 'Geo data "%s" cho %s(%s) không hợp lệ', $cached_kml_file, $term->name, $term->taxonomy ) );
 			return;
 		}
-		if ( $this->check_geodata_exits() ) {
+		if ( $this->check_geodata_exits( $term->term_id ) ) {
 			$sql = $wpdb->prepare(
-				"UPDATE {$wpdb->prefix}wordland_locations SET `term_id`=%d, `location`={$geodata_sql}, `location_name`=%s, `ascii_name`=%s, `geo_eng_name`=%s, `zip_code`=%s",
-				$term->term_id,
-				$location_names,
-				strtolower( $acii_name ),
-				$geo_eng_name,
-				$zipcode
+				"UPDATE {$wpdb->prefix}wordland_locations SET `location`={$geodata_sql} WHERE term_id=%d",
+				$term->term_id
 			);
 		} else {
+			$geo_mapping_fields = Diagioihanhchinh_Data::get_geo_mapping_fields();
+			$geo_eng_name       = Diagioihanhchinh_Data::clean_location_name( $term->name );
+			$geo_eng_name       = remove_accents( $geo_eng_name );
+			if ( isset( $geo_mapping_fields[ $geo_eng_name ] ) ) {
+				$geo_eng_name = $geo_mapping_fields[ $geo_eng_name ];
+			}
 			$sql = $wpdb->prepare(
-				"INSERT INTO {$wpdb->prefix}wordland_locations(`term_id`, `created_at`, `location`, `location_name`, `ascii_name`, `geo_eng_name`, `zip_code` ) VALUES(%d, CURRENT_TIMESTAMP, {$geodata_sql}, %s, %s, %s, %s)",
+				"INSERT INTO {$wpdb->prefix}wordland_locations(`term_id`, `created_at`, `location`, `location_name`, `ascii_name`, `geo_eng_name`) VALUES(%d, CURRENT_TIMESTAMP, {$geodata_sql}, %s, %s, %s, %s)",
 				$term->term_id,
 				$location_names,
 				strtolower( $acii_name ),
 				remove_accents( $geo_eng_name ),
-				$zipcode
 			);
 		}
 

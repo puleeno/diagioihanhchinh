@@ -1,12 +1,24 @@
 <?php
 class Diagioihanhchinh_Geo_Data_Importer {
-	protected static $geo_mapping = array();
+	protected $data_dir;
+	protected $kml_cache_dir;
 
 	public function __construct() {
-		$mapping_config_file = sprintf('%s/data/geo/mapping.json', dirname(DIAGIOIHANHCHINH_PLUGIN_FILE));
-		if(file_exists($mapping_config_file)) {
-			static::$geo_mapping = json_decode(file_get_contents($mapping_config_file), true);
-		}
+		$plugin_dir          = dirname( DIAGIOIHANHCHINH_PLUGIN_FILE );
+		$this->data_dir      = sprintf( '%s/data/', $plugin_dir );
+		$this->kml_cache_dir = sprintf( '%s/output/kml', $plugin_dir );
+	}
+
+	protected function fix_location_name( $name ) {
+		return str_replace(
+			array(
+				'Cần Thơn',
+			),
+			array(
+				'Cần Thơ',
+			),
+			$name
+		);
 	}
 
 	public function import() {
@@ -17,116 +29,83 @@ class Diagioihanhchinh_Geo_Data_Importer {
 		if ( empty( $support_geodata_taxonomies ) ) {
 			return;
 		}
+		$this->import_city_geodata( $support_geodata_taxonomies );
+		$this->import_district_geodata( $support_geodata_taxonomies );
+	}
 
-		global $wp_version;
-		foreach ( $support_geodata_taxonomies as $support_geodata_taxonomy ) {
-			$args  = array(
-				'taxonomy'   => $support_geodata_taxonomy,
-				'hide_empty' => false,
-				'orderby'    => 'ID',
+	public function import_city_geodata( $support_geodata_taxonomies ) {
+		$city_dat_file = sprintf( '%s/diaphantinhvn.kml', $this->data_dir );
+		if ( ! file_exists( $city_dat_file ) ) {
+			error_log(
+				sprintf(
+					'Lỗi tập tin data "%s" không tồn tại',
+					$city_dat_file
+				)
 			);
-			$terms = version_compare( $wp_version, '4.5.0' ) ? get_terms( $args ) : get_terms( $args['taxonomy'], $args );
-			$this->import_city_geodata( $terms );
 		}
-	}
-
-	public function import_city_geodata( $terms ) {
-		if ( empty( $terms ) ) {
+		$kml = simplexml_load_file( $city_dat_file );
+		if ( ! isset( $kml->Document->Folder ) ) {
 			return;
 		}
-		foreach ( $terms as $term ) {
-			$city_name = remove_accents( str_replace( 'TP ', '', $term->name ) );
-			$city_name = str_replace( ' - ', ' ', $city_name );
-			$this->read_geo_data_from_city_name( $city_name, $term );
+		$cities = $kml->Document->Folder;
+		foreach ( $cities->Placemark as $city ) {
+			if ( ! isset( $city->ExtendedData->SchemaData->SimpleData[2] ) ) {
+				continue;
+			}
+			$city_name = $city->ExtendedData->SchemaData->SimpleData[2];
+
+			if ( (string) $city_name['name'] === 'ten_tinh' ) {
+				$city_name = $this->fix_location_name( (string) $city_name );
+				$geom      = geoPHP::load( $city->asXML(), 'kml' );
+
+				foreach ( $support_geodata_taxonomies as $taxonomy ) {
+					$term = Diagioihanhchinh_Data::get_term_from_clean_name( $city_name, $taxonomy );
+					do_action(
+						"diagioihanhchinh_insert_{$taxonomy}_term_geodata",
+						$geom,
+						$term,
+						$city->asXML()
+					);
+				}
+			}
 		}
 	}
 
-	public static function get_geo_mapping_fields() {
-		return static::$geo_mapping;
-	}
-
-	protected function group_ward_locations_to_districts( $kml_content ) {
-		if ( empty( $kml_content ) ) {
+	protected function import_district_geodata( $city_taxonomies ) {
+		$city_dat_file = sprintf( '%s/diaphantinhvn.kml', $this->data_dir );
+		if ( ! file_exists( $city_dat_file ) ) {
+			error_log(
+				sprintf(
+					'Lỗi tập tin data "%s" không tồn tại',
+					$city_dat_file
+				)
+			);
+		}
+		$kml = simplexml_load_file( $city_dat_file );
+		if ( ! isset( $kml->Document->Folder ) ) {
 			return;
 		}
-
-		$kml       = simplexml_load_string( $kml_content );
-		$city_kml  = $kml->Document->Folder;
-		$districts = array();
-
-		foreach ( $city_kml->Placemark as $ward_kml ) {
-			$district_name = (string) $ward_kml->ExtendedData->SchemaData->SimpleData;
-			if ( ! isset( $districts[ $district_name ] ) ) {
-				$district_key                = Diagioihanhchinh_Data::create_location_key_from_name( $district_name );
-				$districts[ $district_name ] = array(
-					'name' => $district_name,
-					'key'  => $district_key,
-				);
+		$cities = $kml->Document->Folder;
+		foreach ( $cities->Placemark as $city ) {
+			if ( ! isset( $city->ExtendedData->SchemaData->SimpleData[2] ) ) {
+				continue;
 			}
-			if ( ! isset( $districts[ $district_name ]['wards_kml'] ) ) {
-				$districts[ $district_name ]['wards_kml'] = array();
+			$city_name = $city->ExtendedData->SchemaData->SimpleData[2];
+
+			if ( (string) $city_name['name'] === 'ten_tinh' ) {
+				$city_name = $this->fix_location_name( (string) $city_name );
+
+				$geom = geoPHP::load( $city->asXML(), 'kml' );
+
+				foreach ( $support_geodata_taxonomies as $taxonomy ) {
+					do_action(
+						"diagioihanhchinh_insert_{$taxonomy}_term_geodata",
+						$geom,
+						$term,
+						$city->asXML()
+					);
+				}
 			}
-			$districts[ $district_name ]['wards_kml'][ (string) $ward_kml->name ] = $ward_kml->asXML();
-		}
-
-		return $districts;
-	}
-
-	public function read_geo_data_from_city_name( $name, $term ) {
-		$plugin_dir      = dirname( DIAGIOIHANHCHINH_PLUGIN_FILE );
-		$kml_dir         = sprintf( '%s/outputs/kml', $plugin_dir );
-		$cached_kml_file = sprintf( '%s/%s.kml', $kml_dir, $name );
-
-		if ( ! file_exists( $cached_kml_file ) ) {
-			$data_file = sprintf( '%s/data/kml/%s.kmz', $plugin_dir, $name );
-			if ( ! file_exists( $data_file ) ) {
-				error_log(
-					sprintf(
-						'Lỗi cập nhật geo data cho %s: lỗi tập tin data  "%s" không tồn tại',
-						$name,
-						$data_file
-					)
-				);
-				return false;
-			}
-			$zip = new ZipArchive();
-			$res = $zip->open( $data_file );
-			if ( $res === true ) {
-				$zip->extractTo( $kml_dir );
-				$zip->close();
-				rename(
-					sprintf( '%s/doc.kml', $kml_dir ),
-					$cached_kml_file
-				);
-			} else {
-				error_log( sprintf( 'Không thể mở tập tin "%s"', $data_file ) );
-				return false;
-			}
-		}
-
-		$kml_content  = file_get_contents( $cached_kml_file );
-		$parser       = new KML();
-		$multipolygon = $parser->read( $kml_content, true );
-
-		do_action(
-			"diagioihanhchinh_insert_{$term->taxonomy}_term_geodata",
-			$multipolygon,
-			$term,
-			$kml_content,
-			$cached_kml_file
-		);
-
-		$this->read_district_geodatas(
-			$this->group_ward_locations_to_districts( $kml_content ),
-			$term->taxonomy,
-			$term->name
-		);
-	}
-
-
-	protected function read_district_geodatas( $grouped_district_geodatas, $taxonomy, $city_name ) {
-		if ( empty( $grouped_district_geodatas ) ) {
-			return;
 		}
 
 		$parent_tt = term_exists( $city_name, $taxonomy );
@@ -144,28 +123,6 @@ class Diagioihanhchinh_Geo_Data_Importer {
 		foreach ( $grouped_district_geodatas as $district_geodata ) {
 			$wards_kml     = implode( "\n", $district_geodata['wards_kml'] );
 			$district_name = $district_geodata['name'];
-
-			$kml_content = <<<XML
-<?xml version="1.0" encoding="UTF-8"?>
-	<!-- Generated by Puleeno Nguyen 2020 -->
-	<kml xmlns="http://www.opengis.net/kml/2.2" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:gx="http://www.google.com/kml/ext/2.2">
-		<Document>
-			<name>{$district_name}</name>
-			<atom:author>
-				<atom:name>Puleeno Nguyen</atom:name>
-				<atom:email>puleeno@gmail.com</atom:email>
-			</atom:author>
-			<visibility>1</visibility>
-			<Schema name="NewFeatureType" id="NewFeatureType">
-				<SimpleField type="xsd:string" name="Quan" />
-			</Schema>
-			<Folder id="kml_ft_{$district_geodata['key']}">
-				<name>{$district_name}</name>
-				{$wards_kml}
-			</Folder>
-		</Document>
-	</kml>
-XML;
 
 			$parser       = new KML();
 			$multipolygon = $parser->read( $kml_content, true );
