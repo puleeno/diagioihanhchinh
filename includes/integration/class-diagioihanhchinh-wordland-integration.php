@@ -18,7 +18,7 @@ class Diagioihanhchinh_WordLand_Integration {
 
 		$args['taxonomy'] = $taxonomy;
 
-		$filter_db = function( $terms_clauses ) use ( $name, $taxonomy ) {
+		$filter_db = function( $terms_clauses ) use ( $name ) {
 			global $wpdb;
 			$clean_name = Diagioihanhchinh_Data::clean_location_name( $name );
 			$clean_name = remove_accents( $clean_name );
@@ -28,10 +28,18 @@ class Diagioihanhchinh_WordLand_Integration {
 
 			return $terms_clauses;
 		};
+		$filter_opts = function($option_value) use ($args) {
+			$option_value[$args['parent']] = true;
+			return $option_value;
+		};
 
 		add_filter( 'terms_clauses', $filter_db );
+		add_filter( 'option_administrative_area_level_2_children', $filter_opts);
+		add_filter( 'option_administrative_area_level_3_children', $filter_opts);
 		$terms = version_compare( $wp_version, '4.5.0' ) ? get_terms( $args ) : get_terms( $taxonomy, $args );
 		remove_filter( 'terms_clauses', $filter_db );
+		remove_filter( 'option_administrative_area_level_2_children', $filter_opts);
+		remove_filter( 'option_administrative_area_level_3_children', $filter_opts);
 
 		if ( empty( $terms ) ) {
 			return false;
@@ -240,7 +248,8 @@ class Diagioihanhchinh_WordLand_Integration {
 
 	public function override_default_get_term( $pre, $name, $taxonomy, $args ) {
 		if ( in_array( $taxonomy, array( 'administrative_area_level_1', 'administrative_area_level_2', 'administrative_area_level_3' ) ) ) {
-			return static::get_term_from_clean_name( $name, $taxonomy, $args );
+			$terms = static::get_term_from_clean_name( $name, $taxonomy, $args );
+			return $terms;
 		}
 		return $pre;
 	}

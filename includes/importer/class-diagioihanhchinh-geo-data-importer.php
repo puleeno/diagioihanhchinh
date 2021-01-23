@@ -17,11 +17,15 @@ class Diagioihanhchinh_Geo_Data_Importer {
 				'Cần Thơn',
 				'Bà Rịa -Vũng Tàu',
 				'Quản Bình',
+				'Hooc Môn',
+				'Quậng'
 			),
 			array(
 				'Cần Thơ',
 				'Bà Rịa - Vũng Tàu',
 				'Quảng Bình',
+				'Hóc Môn',
+				'Quận'
 			),
 			$name
 		);
@@ -156,7 +160,7 @@ class Diagioihanhchinh_Geo_Data_Importer {
 						);
 
 						if ( ! $term ) {
-							error_log( sprintf( 'Không tìm thấy huyện "%s" trong CSDL', $district_name ) );
+							error_log( sprintf( 'Không tìm thấy huyện "%s/%s" trong CSDL', $district_name, (string)$city_name ) );
 							continue;
 						}
 
