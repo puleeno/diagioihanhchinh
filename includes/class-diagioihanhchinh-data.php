@@ -68,22 +68,23 @@ class Diagioihanhchinh_Data {
 		 */
 		$name = str_replace(
 			array(
+				'thị xã',
+				'Thị xã',
+				'Thị Xã',
 				'Thị Trấn',
 				'Thị trấn',
 				'thị trấn',
+				'Thành Phố',
+				'Thành phố',
+				'thành phố',
+				'TP.',
+				'TP',
 				'Tỉnh',
 				'tỉnh',
 				'Huyện',
 				'huyện',
 				'Xã',
 				'xã',
-				'TP.',
-				'TP',
-				'Thành phố',
-				'Thành Phố',
-				'thị xã',
-				'Thị xã',
-				'Thị Xã',
 			),
 			'',
 			$name
@@ -96,8 +97,8 @@ class Diagioihanhchinh_Data {
 			array(
 				'/qu\ận {1,}([^\d].+)$/',
 				'/Qu\ận {1,}([^\d].+)$/',
-				'/ph\ư\ờng {1,}([^\d].+)$/',
-				'/Ph\ư\ờng {1,}([^\d].+)$/',
+				'/ph\ư[\ờ|o|\ò]ng {1,}([^\d].+)$/',
+				'/Ph\ư[\ờ|o|\ò]ng {1,}([^\d].+)$/',
 			),
 			'$1',
 			trim( $name )

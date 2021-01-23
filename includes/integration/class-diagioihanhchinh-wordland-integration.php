@@ -18,7 +18,7 @@ class Diagioihanhchinh_WordLand_Integration {
 
 		$args['taxonomy'] = $taxonomy;
 
-		$filter_db = function( $terms_clauses ) use ( $name ) {
+		$filter_db   = function( $terms_clauses ) use ( $name ) {
 			global $wpdb;
 			$clean_name = Diagioihanhchinh_Data::clean_location_name( $name );
 			$clean_name = remove_accents( $clean_name );
@@ -28,18 +28,28 @@ class Diagioihanhchinh_WordLand_Integration {
 
 			return $terms_clauses;
 		};
-		$filter_opts = function($option_value) use ($args) {
-			$option_value[$args['parent']] = true;
+		$filter_opts = function( $option_value ) use ( $args ) {
+			$option_value[ $args['parent'] ] = true;
 			return $option_value;
 		};
 
+		if ( $name === 'Thành phố Long Xuyên' ) {
+			add_filter(
+				'query',
+				function( $sql ) {
+					var_dump( $sql );
+					return $sql;
+				}
+			);
+		}
+
 		add_filter( 'terms_clauses', $filter_db );
-		add_filter( 'option_administrative_area_level_2_children', $filter_opts);
-		add_filter( 'option_administrative_area_level_3_children', $filter_opts);
+		add_filter( 'option_administrative_area_level_2_children', $filter_opts );
+		add_filter( 'option_administrative_area_level_3_children', $filter_opts );
 		$terms = version_compare( $wp_version, '4.5.0' ) ? get_terms( $args ) : get_terms( $taxonomy, $args );
 		remove_filter( 'terms_clauses', $filter_db );
-		remove_filter( 'option_administrative_area_level_2_children', $filter_opts);
-		remove_filter( 'option_administrative_area_level_3_children', $filter_opts);
+		remove_filter( 'option_administrative_area_level_2_children', $filter_opts );
+		remove_filter( 'option_administrative_area_level_3_children', $filter_opts );
 
 		if ( empty( $terms ) ) {
 			return false;
