@@ -193,8 +193,9 @@ class Diagioihanhchinh_Wordland_Integration {
 		$location_name = implode( $this->get_name_separator(), $this->get_parent_names( $term_id ) );
 		$clean_name    = implode( $this->get_name_separator(), $this->get_parent_names( $term_id, true ) );
 
-		$geo_mapping_fields = Diagioihanhchinh_Geo_Data_Importer::get_geo_mapping_fields();
-		$geo_eng_name       = remove_accents( $clean_name );
+		$geo_mapping_fields = Diagioihanhchinh_Data::get_geo_mapping_fields();
+
+		$geo_eng_name = remove_accents( $clean_name );
 		if ( isset( $geo_mapping_fields[ $geo_eng_name ] ) ) {
 			$geo_eng_name = $geo_mapping_fields[ $geo_eng_name ];
 		}
@@ -202,9 +203,9 @@ class Diagioihanhchinh_Wordland_Integration {
 		$data = array(
 			'location_name' => $location_name,
 			'ascii_name'    => remove_accents( $location_name ),
-			'clean_name'    => $clean_name,
+			'clean_name'    => remove_accents( $clean_name ),
 		);
-		if ($taxonomy === 'administrative_area_level_1') {
+		if ( $taxonomy === 'administrative_area_level_1' ) {
 			$data['geo_eng_name'] = $geo_eng_name;
 		}
 
