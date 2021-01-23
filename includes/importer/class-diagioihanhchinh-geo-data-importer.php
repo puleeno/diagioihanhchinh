@@ -140,10 +140,12 @@ class Diagioihanhchinh_Geo_Data_Importer {
 					$city_term_id       = $this->get_city_term( (string) $city_name, $city_taxonomy );
 
 					if ( ! $city_term_id || empty( $city_taxonomy_info['childs'] ) ) {
+						error_log( 'Không thể tìm thấy ID thành phố hoặc thông tin của thành phố' );
 						continue;
 					}
 
 					$district_taxonomies = $city_taxonomy_info['childs'];
+
 					foreach ( $district_taxonomies as $taxonomy ) {
 						$term = Diagioihanhchinh_Data::get_location_term(
 							$district_name,
@@ -153,53 +155,19 @@ class Diagioihanhchinh_Geo_Data_Importer {
 							)
 						);
 
+						if ( ! $term ) {
+							error_log( sprintf( 'Không tìm thấy huyện "%s" trong CSDL', $district_name ) );
+							continue;
+						}
+
 						do_action(
 							"diagioihanhchinh_insert_{$taxonomy}_term_geodata",
 							$geom,
 							$term,
-							$district->asXML()
+							$district
 						);
 					}
 				}
-			}
-		}
-
-		$parent_tt = term_exists( $city_name, $taxonomy );
-		if ( ! $parent_tt ) {
-			error_log( sprintf( 'Không tìm thấy tên thành phố "%s" trong CSDL', $city_name ) );
-			return;
-		}
-
-		$taxonomy_info = Diagioihanhchinh::get_registered_locations( $taxonomy );
-		if ( ! isset( $taxonomy_info['childs'] ) ) {
-			error_log( sprintf( 'Not found child location of "%s" taxonomy', $taxonomy ) );
-			return;
-		}
-
-		foreach ( $grouped_district_geodatas as $district_geodata ) {
-			$wards_kml     = implode( "\n", $district_geodata['wards_kml'] );
-			$district_name = $district_geodata['name'];
-
-			$parser       = new KML();
-			$multipolygon = $parser->read( $kml_content, true );
-
-			foreach ( $taxonomy_info['childs'] as $district_taxonomy ) {
-				$district_name = Diagioihanhchinh_Data::clean_location_name( $district_name );
-				$district_tt   = term_exists( $district_name, $district_taxonomy, $parent_tt['term_id'] );
-
-				if ( ! $district_tt ) {
-					error_log( sprintf( 'Không tìm thấy huyện "%s" trong CSDL', $district_name ) );
-					continue;
-				}
-
-				do_action(
-					"diagioihanhchinh_insert_{$district_taxonomy}_term_geodata",
-					$multipolygon,
-					get_term( $district_tt['term_id'] ),
-					$kml_content
-				);
-
-				$this->read_ward_geodata( $district_geodata['wards_kml'], $district_taxonomy, $district_tt['term_id'] );
 			}
 		}
 	}
@@ -214,15 +182,9 @@ class Diagioihanhchinh_Geo_Data_Importer {
 			return;
 		}
 
-		foreach ( $ward_geodatas as $ward_name => $ward_geodata ) {
-			$ward_name   = Diagioihanhchinh_Data::clean_location_name( $ward_name );
-			$kml_content = <<<XML
-<?xml version="1.0" encoding="UTF-8"?>
-<kml xmlns="http://www.opengis.net/kml/2.2">
-  {$ward_geodata}
-</kml>
-XML;
-			$polygon     = geoPHP::load( $kml_content, 'kml' );
+		foreach ( $ward_geodatas as $ward_name => $kml_content ) {
+			$ward_name = Diagioihanhchinh_Data::clean_location_name( $ward_name );
+			$polygon   = geoPHP::load( $kml_content, 'kml' );
 
 			foreach ( $district_taxonomy_info['childs'] as $ward_taxonomy ) {
 				$ward_tt = term_exists( $ward_name, $ward_taxonomy, $district_term_id );

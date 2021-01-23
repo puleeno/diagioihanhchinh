@@ -155,6 +155,13 @@ class Diagioihanhchinh_Data {
 	}
 
 	public static function get_location_term( $name, $taxonomy, $args = array() ) {
+		$args = wp_parse_args(
+			$args,
+			array(
+				'hide_empty' => false,
+			)
+		);
+
 		$pre = apply_filters( 'diagioihanhchinh_pre_get_location_term', null, $name, $taxonomy, $args );
 		if ( $pre !== null ) {
 			return $pre;

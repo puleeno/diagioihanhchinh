@@ -18,7 +18,7 @@ class Diagioihanhchinh_WordLand_Integration {
 
 		$args['taxonomy'] = $taxonomy;
 
-		$filter_db = function( $terms_clauses ) use ( $name ) {
+		$filter_db = function( $terms_clauses ) use ( $name, $taxonomy ) {
 			global $wpdb;
 			$clean_name = Diagioihanhchinh_Data::clean_location_name( $name );
 			$clean_name = remove_accents( $clean_name );
