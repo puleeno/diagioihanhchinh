@@ -70,7 +70,7 @@ class Diagioihanhchinh {
 	public function load_integrations() {
 		$active_plugins = get_option( 'active_plugins' );
 		if ( in_array( 'wordland/wordland.php', $active_plugins ) ) {
-			new Diagioihanhchinh_Wordland_Integration();
+			new Diagioihanhchinh_WordLand_Integration();
 		}
 	}
 

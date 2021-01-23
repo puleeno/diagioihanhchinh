@@ -3,6 +3,8 @@ class Diagioihanhchinh_Geo_Data_Importer {
 	protected $data_dir;
 	protected $kml_cache_dir;
 
+	protected static $cached_cities = array();
+
 	public function __construct() {
 		$plugin_dir          = dirname( DIAGIOIHANHCHINH_PLUGIN_FILE );
 		$this->data_dir      = sprintf( '%s/data/', $plugin_dir );
@@ -14,12 +16,12 @@ class Diagioihanhchinh_Geo_Data_Importer {
 			array(
 				'Cần Thơn',
 				'Bà Rịa -Vũng Tàu',
-				'Quản Bình'
+				'Quản Bình',
 			),
 			array(
 				'Cần Thơ',
 				'Bà Rịa - Vũng Tàu',
-				'Quảng Bình'
+				'Quảng Bình',
 			),
 			$name
 		);
@@ -63,9 +65,9 @@ class Diagioihanhchinh_Geo_Data_Importer {
 				$geom      = geoPHP::load( $city->asXML(), 'kml' );
 
 				foreach ( $support_geodata_taxonomies as $taxonomy ) {
-					$term = Diagioihanhchinh_Data::get_term_from_clean_name( $city_name, $taxonomy );
-					if (empty($term)) {
-						var_dump($city_name);
+					$term = Diagioihanhchinh_Data::get_location_term( $city_name, $taxonomy );
+					if ( empty( $term ) ) {
+						error_log( sprintf( 'Lỗi: không tìm thấy tỉnh/thành "%s" trong CSDL', $city_name ) );
 						continue;
 					}
 					do_action(
@@ -77,6 +79,34 @@ class Diagioihanhchinh_Geo_Data_Importer {
 				}
 			}
 		}
+	}
+
+	/**
+	 * Get term ID is cached
+	 */
+	public static function get_cached_city( $city_name, $taxonomy ) {
+		if ( ! isset( static::$cached_cities[ $taxonomy ][ $city_name ] ) ) {
+			return false;
+		}
+		return static::$cached_cities[ $taxonomy ][ $city_name ];
+	}
+
+	protected function get_city_term( $city_name, $city_taxonomy ) {
+		$cached_city = static::get_cached_city( $city_name, $city_taxonomy );
+		if ( $cached_city !== false ) {
+			return $cached_city;
+		}
+		$term = Diagioihanhchinh_Data::get_location_term( $city_name, $city_taxonomy );
+		if ( $term ) {
+			if ( ! isset( static::$cached_cities[ $city_taxonomy ] ) ) {
+				static::$cached_cities[ $city_taxonomy ] = array();
+			}
+			static::$cached_cities[ $city_taxonomy ][ $city_name ] = $term->term_id;
+
+			return $term->term_id;
+		}
+
+		return false;
 	}
 
 	protected function import_district_geodata( $city_taxonomies ) {
@@ -95,24 +125,41 @@ class Diagioihanhchinh_Geo_Data_Importer {
 		}
 		$districts = $kml->Document->Folder;
 		foreach ( $districts->Placemark as $district ) {
-			var_dump($district);die;
 			if ( ! isset( $district->ExtendedData->SchemaData->SimpleData[2] ) ) {
 				continue;
 			}
-			$district_name = $district->ExtendedData->SchemaData->SimpleData[2];
+			$city_name     = $district->ExtendedData->SchemaData->SimpleData[2];
+			$district_name = $district->ExtendedData->SchemaData->SimpleData[3];
 
-			if ( (string) $district_name['name'] === 'ten_tinh' ) {
+			if ( (string) $city_name['name'] === 'Ten_Tinh' && (string) $district_name['name'] === 'Ten_Huyen' ) {
 				$district_name = $this->fix_location_name( (string) $district_name );
+				$geom          = geoPHP::load( $district->asXML(), 'kml' );
 
-				$geom = geoPHP::load( $district->asXML(), 'kml' );
+				foreach ( $city_taxonomies as $city_taxonomy ) {
+					$city_taxonomy_info = Diagioihanhchinh::get_registered_locations( $city_taxonomy );
+					$city_term_id       = $this->get_city_term( (string) $city_name, $city_taxonomy );
 
-				foreach ( $support_geodata_taxonomies as $taxonomy ) {
-					do_action(
-						"diagioihanhchinh_insert_{$taxonomy}_term_geodata",
-						$geom,
-						$term,
-						$district->asXML()
-					);
+					if ( ! $city_term_id || empty( $city_taxonomy_info['childs'] ) ) {
+						continue;
+					}
+
+					$district_taxonomies = $city_taxonomy_info['childs'];
+					foreach ( $district_taxonomies as $taxonomy ) {
+						$term = Diagioihanhchinh_Data::get_location_term(
+							$district_name,
+							$taxonomy,
+							array(
+								'parent' => $city_term_id,
+							)
+						);
+
+						do_action(
+							"diagioihanhchinh_insert_{$taxonomy}_term_geodata",
+							$geom,
+							$term,
+							$district->asXML()
+						);
+					}
 				}
 			}
 		}

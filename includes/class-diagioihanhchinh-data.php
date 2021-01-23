@@ -94,10 +94,10 @@ class Diagioihanhchinh_Data {
 		 */
 		$name = preg_replace(
 			array(
-				'/qu\ận {1,}([^d].+)$/',
-				'/Qu\ận {1,}([^d].+)$/',
-				'/ph\ư\ờng {1,}([^d].+)$/',
-				'/Ph\ư\ờng {1,}([^d].+)$/',
+				'/qu\ận {1,}([^\d].+)$/',
+				'/Qu\ận {1,}([^\d].+)$/',
+				'/ph\ư\ờng {1,}([^\d].+)$/',
+				'/Ph\ư\ờng {1,}([^\d].+)$/',
 			),
 			'$1',
 			trim( $name )
@@ -137,33 +137,26 @@ class Diagioihanhchinh_Data {
 		return trim( $name );
 	}
 
-	public static function get_term_from_clean_name( $name, $taxonomy, $args = array( 'hide_empty' => false ) ) {
+	public static function get_location_term( $name, $taxonomy, $args = array() ) {
+		$pre = apply_filters( 'diagioihanhchinh_pre_get_location_term', null, $name, $taxonomy, $args );
+		if ( $pre !== null ) {
+			return $pre;
+		}
+
 		global $wp_version;
 
-		$args['taxonomy'] = $taxonomy;
-
-		$filter_db = function( $terms_clauses ) use ( $name ) {
-			global $wpdb;
-			$clean_name = self::clean_location_name( $name );
-			$clean_name = remove_accents( $clean_name );
-
-			$terms_clauses['join']  .= " INNER JOIN {$wpdb->prefix}wordland_locations l ON t.term_id = l.term_id";
-			$terms_clauses['where'] .= " AND l.clean_name LIKE '%" . $wpdb->_real_escape( $clean_name ) . "%'";
-
-			return $terms_clauses;
-		};
-
-		add_filter( 'terms_clauses', $filter_db );
+		$args  = array_merge(
+			$args,
+			array(
+				'taxonomy' => $taxonomy,
+				'name'     => $name,
+			)
+		);
 		$terms = version_compare( $wp_version, '4.5.0' ) ? get_terms( $args ) : get_terms( $taxonomy, $args );
-		remove_filter( 'terms_clauses', $filter_db );
-
 		if ( empty( $terms ) ) {
 			return false;
 		}
-
-		$term = array_shift( $terms );
-
-		return get_term( $term, $taxonomy );
+		return array_shift( $terms );
 	}
 }
 

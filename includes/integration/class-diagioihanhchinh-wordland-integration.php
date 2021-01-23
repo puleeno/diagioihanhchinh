@@ -1,14 +1,45 @@
 <?php
-class Diagioihanhchinh_Wordland_Integration {
+class Diagioihanhchinh_WordLand_Integration {
 	public function __construct() {
 		add_action( 'after_setup_theme', array( $this, 'change_location_labels' ) );
 		add_action( 'after_setup_theme', array( $this, 'register_wordland_locations' ) );
 
 		add_action( 'init', array( $this, 'create_data' ) );
+
+		add_filter( 'diagioihanhchinh_pre_get_location_term', array( $this, 'override_default_get_term' ), 10, 4 );
 	}
 
 	protected function get_name_separator() {
 		return apply_filters( 'diagioihanhchinh_name_separator', ', ' );
+	}
+
+	public static function get_term_from_clean_name( $name, $taxonomy, $args = array() ) {
+		global $wp_version;
+
+		$args['taxonomy'] = $taxonomy;
+
+		$filter_db = function( $terms_clauses ) use ( $name ) {
+			global $wpdb;
+			$clean_name = Diagioihanhchinh_Data::clean_location_name( $name );
+			$clean_name = remove_accents( $clean_name );
+
+			$terms_clauses['join']  .= " INNER JOIN {$wpdb->prefix}wordland_locations l ON t.term_id = l.term_id";
+			$terms_clauses['where'] .= " AND l.clean_name LIKE '%" . $wpdb->_real_escape( $clean_name ) . "%'";
+
+			return $terms_clauses;
+		};
+
+		add_filter( 'terms_clauses', $filter_db );
+		$terms = version_compare( $wp_version, '4.5.0' ) ? get_terms( $args ) : get_terms( $taxonomy, $args );
+		remove_filter( 'terms_clauses', $filter_db );
+
+		if ( empty( $terms ) ) {
+			return false;
+		}
+
+		$term = array_shift( $terms );
+
+		return get_term( $term, $taxonomy );
 	}
 
 	public function change_location_labels() {
@@ -205,5 +236,12 @@ class Diagioihanhchinh_Wordland_Integration {
 		}
 
 		return Diagioihanhchinh_Query::insert_location( $term_id, $data );
+	}
+
+	public function override_default_get_term( $pre, $name, $taxonomy, $args ) {
+		if ( in_array( $taxonomy, array( 'administrative_area_level_1', 'administrative_area_level_2', 'administrative_area_level_3' ) ) ) {
+			return static::get_term_from_clean_name( $name, $taxonomy, $args );
+		}
+		return $pre;
 	}
 }
