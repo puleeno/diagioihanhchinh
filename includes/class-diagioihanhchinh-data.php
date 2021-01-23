@@ -30,7 +30,42 @@ class Diagioihanhchinh_Data {
 	 *
 	 * @link https://www.gso.gov.vn/dmhc2015/Default.aspx
 	 */
-	public static function clean_location_name( $name ) {
+	public static function clean_location_name($name, $clean_unicode = false) {
+		/**
+		 * Fix multi whitespace
+		 */
+		$name = preg_replace('/(\s){2,}/', '$1', $name);
+
+		/**
+		 * Make name has - character must be [whitespace]-[whitespace]
+		 *
+		 * Eg. Bà Rịa -Vũng Tàu => Bà Rịa - Vũng Tàu
+		 */
+		$name = preg_replace(array(
+			'/[^\s]-\s/',
+			'/\s-[^\s]/',
+			'/[^\s]-[^\s]/',
+		), ' - ', $name);
+
+		/**
+		 * Clean prefix name
+		 * Eg. TP., thị xã, thị trấn, etc
+		 */
+		$name = str_replace(array(
+			'Thị Trấn', 'Thị trấn', 'thị trấn', 'Tỉnh', 'tỉnh', 'Huyện', 'huyện', 'Xã', 'xã',
+			'TP.', 'TP', 'Thành phố', 'Thành Phố', 'thị xã', 'Thị xã', 'Thị Xã'
+		), '', $name);
+
+		/**
+		 * Fix district names and ward names
+		 */
+		$name = preg_replace(array(
+			'/qu\ận {1,}([^d].+)$/',
+			'/Qu\ận {1,}([^d].+)$/',
+			'/ph\ư\ờng {1,}([^d].+)$/',
+			'/Ph\ư\ờng {1,}([^d].+)$/',
+		), '$1', trim($name));
+
 		/**
 		 * Fix name do not have whitespace
 		 *
@@ -47,35 +82,18 @@ class Diagioihanhchinh_Data {
 		$name = preg_replace( '/(\w\') /', '$1', $name );
 
 		/**
-		 * Fix name has - character
-		 *
-		 * Bà Rịa – Vũng Tàu
+		 * Fix special cases
 		 */
-		$name = str_replace(
-			array(
-				'Bà Rịa Vũng Tàu',
-			),
-			array(
-				'Bà Rịa – Vũng Tàu',
-			),
-			$name
-		);
+		$name = str_replace(array(
+			'Bà Rịa Vũng Tàu'
+		), array(
+			'Bà Rịa - Vũng Tàu'
+		), $name);
 
-		$replaced_name = str_replace(
-			array(
-				'Thành phố ',
-				'Thị trấn ',
-				'Tỉnh ',
-				'Huyện ',
-				'Xã ',
-				'Thị xã ',
-				'',
-			),
-			'',
-			$name
-		);
-
-		return trim( $replaced_name );
+		if ($clean_unicode) {
+			return remove_accents(trim($name));
+		}
+		return trim($name);
 	}
 }
 
