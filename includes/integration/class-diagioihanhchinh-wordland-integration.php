@@ -33,16 +33,6 @@ class Diagioihanhchinh_WordLand_Integration {
 			return $option_value;
 		};
 
-		if ( $name === 'Thành phố Long Xuyên' ) {
-			add_filter(
-				'query',
-				function( $sql ) {
-					var_dump( $sql );
-					return $sql;
-				}
-			);
-		}
-
 		add_filter( 'terms_clauses', $filter_db );
 		add_filter( 'option_administrative_area_level_2_children', $filter_opts );
 		add_filter( 'option_administrative_area_level_3_children', $filter_opts );
