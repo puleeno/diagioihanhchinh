@@ -104,6 +104,23 @@ class Diagioihanhchinh_Data {
 		);
 
 		/**
+		 * Fix district names and ward names has number
+		 * Eg: Phường 01    -> Phường 1
+		 *     Phường 001   -> Phường 1
+		 *     Phường 00013 -> Phường 13
+		 */
+		$name = preg_replace(
+			array(
+				'/(qu\ận) {1,}0{1,}([^\d]{1,})$/',
+				'/(Qu\ận) {1,}0{1,}([^\d]{1,})$/',
+				'/(ph\ư\ờng) {1,}0{1,}([^\d]{1,})$/',
+				'/(Ph\ư\ờng) {1,}0{1,}([^\d]{1,})$/',
+			),
+			'$1 $2',
+			trim( $name )
+		);
+
+		/**
 		 * Fix name do not have whitespace
 		 *
 		 * LộcHà
