@@ -138,6 +138,8 @@ class Diagioihanhchinh_Data_Importer {
 					$term_id = $cached_locations[ $orgcity_id ];
 				} else {
 					$term_id = $this->insert_term( $city['name'], $taxonomy );
+
+					do_action('diagioihanhchinh_insert_term', $term_id, $city['name'], $taxonomy, 0);
 				}
 
 				if ( ! isset( $cached_locations[ $orgcity_id ] ) ) {
@@ -171,6 +173,7 @@ class Diagioihanhchinh_Data_Importer {
 					$term_id = $cached_locations[ $orgdistrict_id ];
 				} else {
 					$term_id = $this->insert_term( $district['name'], $taxonomy, $parent_city_term_id );
+					do_action('diagioihanhchinh_insert_term', $term_id, $district['name'], $taxonomy, $parent_city_term_id);
 				}
 
 				if ( ! isset( $cached_locations[ $orgdistrict_id ] ) ) {
@@ -203,6 +206,7 @@ class Diagioihanhchinh_Data_Importer {
 					$term_id = $cached_locations[ $orgward_id ];
 				} else {
 					$term_id = $this->insert_term( $ward['name'], $taxonomy, $parent_district_term_id );
+					do_action('diagioihanhchinh_insert_term', $term_id, $ward['name'], $taxonomy, $parent_district_term_id);
 				}
 
 				if ( ! isset( $cached_locations[ $orgward_id ] ) ) {
@@ -213,5 +217,6 @@ class Diagioihanhchinh_Data_Importer {
 				}
 			}
 		}
+
 	}
 }
