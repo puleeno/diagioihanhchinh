@@ -8,7 +8,7 @@ class Diagioihanhchinh_Wordland_Integration {
 	}
 
 	protected function get_name_separator() {
-		return apply_filters('diagioihanhchinh_name_separator', ', ');
+		return apply_filters( 'diagioihanhchinh_name_separator', ', ' );
 	}
 
 	public function change_location_labels() {
@@ -88,6 +88,8 @@ class Diagioihanhchinh_Wordland_Integration {
 	}
 
 	public function create_data() {
+		add_action( 'diagioihanhchinh_insert_term', array( $this, 'insert_data_to_wordland_location' ), 10, 4 );
+
 		add_action(
 			'diagioihanhchinh_insert_administrative_area_level_1_term_geodata',
 			array( $this, 'update_term_geodata' ),
@@ -124,12 +126,13 @@ class Diagioihanhchinh_Wordland_Integration {
 		}
 	}
 
-	protected function get_parent_names($parent_term_id, &$names = array()) {
-		$term  = get_term($parent_term_id);
-		if ($term && !is_wp_error($term)) {
-			array_push($names, $term->name);
-			if ($term->parent > 0) {
-				return $this->get_parent_names($term->parent, $names);
+	protected function get_parent_names( $parent_term_id, $clean_name = false, &$names = array() ) {
+		$term = get_term( $parent_term_id );
+		if ( $term && ! is_wp_error( $term ) ) {
+			$term_name = $clean_name ? Diagioihanhchinh_Data::clean_location_name( $term->name ) : $term->name;
+			array_push( $names, $term_name );
+			if ( $term->parent > 0 ) {
+				return $this->get_parent_names( $term->parent, $clean_name, $names );
 			}
 		}
 		return $names;
@@ -138,23 +141,22 @@ class Diagioihanhchinh_Wordland_Integration {
 	public function update_term_geodata( $multipolygon, $term, $kml_content, $cached_kml_file = null ) {
 		global $wpdb;
 		$geodata_sql = $this->create_geodata_sql( $multipolygon );
-		if ($term->parent > 0) {
-			$location_names = $this->get_parent_names($term->parent);
-			array_unshift($location_names, $term->name);
+		if ( $term->parent > 0 ) {
+			$location_names = $this->get_parent_names( $term->parent );
+			array_unshift( $location_names, $term->name );
 
-			$location_names = implode($this->get_name_separator(), $location_names);
+			$location_names = implode( $this->get_name_separator(), $location_names );
 
 		} else {
-			$location_names =$term->name;
+			$location_names = $term->name;
 		}
-		$acii_name    = remove_accents($location_names);
-		$zipcode      = '0000000000';
+		$acii_name = remove_accents( $location_names );
 
 		$geo_mapping_fields = Diagioihanhchinh_Geo_Data_Importer::get_geo_mapping_fields();
-		$geo_eng_name       = Diagioihanhchinh_Data::clean_location_name($term->name);
-		$geo_eng_name       = remove_accents($geo_eng_name);
-		if (isset($geo_mapping_fields[$geo_eng_name])) {
-			$geo_eng_name = $geo_mapping_fields[$geo_eng_name];
+		$geo_eng_name       = Diagioihanhchinh_Data::clean_location_name( $term->name );
+		$geo_eng_name       = remove_accents( $geo_eng_name );
+		if ( isset( $geo_mapping_fields[ $geo_eng_name ] ) ) {
+			$geo_eng_name = $geo_mapping_fields[ $geo_eng_name ];
 		}
 
 		if ( empty( $geodata_sql ) ) {
@@ -169,7 +171,7 @@ class Diagioihanhchinh_Wordland_Integration {
 				"UPDATE {$wpdb->prefix}wordland_locations SET `term_id`=%d, `location`={$geodata_sql}, `location_name`=%s, `ascii_name`=%s, `geo_eng_name`=%s, `zip_code`=%s",
 				$term->term_id,
 				$location_names,
-				strtolower($acii_name),
+				strtolower( $acii_name ),
 				$geo_eng_name,
 				$zipcode
 			);
@@ -178,12 +180,32 @@ class Diagioihanhchinh_Wordland_Integration {
 				"INSERT INTO {$wpdb->prefix}wordland_locations(`term_id`, `created_at`, `location`, `location_name`, `ascii_name`, `geo_eng_name`, `zip_code` ) VALUES(%d, CURRENT_TIMESTAMP, {$geodata_sql}, %s, %s, %s, %s)",
 				$term->term_id,
 				$location_names,
-				strtolower($acii_name),
-				remove_accents($geo_eng_name),
+				strtolower( $acii_name ),
+				remove_accents( $geo_eng_name ),
 				$zipcode
 			);
 		}
 
 		return $wpdb->query( $sql );
+	}
+
+	public function insert_data_to_wordland_location( $term_id, $name, $taxonomy, $parent_term_id ) {
+		$location_name = implode( $this->get_name_separator(), $this->get_parent_names( $term_id ) );
+		$clean_name    = implode( $this->get_name_separator(), $this->get_parent_names( $term_id, true ) );
+
+		$geo_mapping_fields = Diagioihanhchinh_Geo_Data_Importer::get_geo_mapping_fields();
+		$geo_eng_name       = remove_accents( $clean_name );
+		if ( isset( $geo_mapping_fields[ $geo_eng_name ] ) ) {
+			$geo_eng_name = $geo_mapping_fields[ $geo_eng_name ];
+		}
+
+		$data = array(
+			'location_name' => $location_name,
+			'ascii_name'    => remove_accents( $location_name ),
+			'clean_name'    => $clean_name,
+			'geo_eng_name'  => $geo_eng_name,
+		);
+
+		return Diagioihanhchinh_Query::insert_location( $term_id, $data );
 	}
 }

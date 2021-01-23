@@ -30,41 +30,67 @@ class Diagioihanhchinh_Data {
 	 *
 	 * @link https://www.gso.gov.vn/dmhc2015/Default.aspx
 	 */
-	public static function clean_location_name($name, $clean_unicode = false) {
+	public static function clean_location_name( $name, $clean_unicode = false ) {
 		/**
 		 * Fix multi whitespace
 		 */
-		$name = preg_replace('/(\s){2,}/', '$1', $name);
+		$name = preg_replace( '/(\s){2,}/', '$1', $name );
 
 		/**
 		 * Make name has - character must be [whitespace]-[whitespace]
 		 *
 		 * Eg. Bà Rịa -Vũng Tàu => Bà Rịa - Vũng Tàu
 		 */
-		$name = preg_replace(array(
-			'/[^\s]-\s/',
-			'/\s-[^\s]/',
-			'/[^\s]-[^\s]/',
-		), ' - ', $name);
+		$name = preg_replace(
+			array(
+				'/[^\s]-\s/',
+				'/\s-[^\s]/',
+				'/[^\s]-[^\s]/',
+			),
+			' - ',
+			$name
+		);
 
 		/**
 		 * Clean prefix name
 		 * Eg. TP., thị xã, thị trấn, etc
 		 */
-		$name = str_replace(array(
-			'Thị Trấn', 'Thị trấn', 'thị trấn', 'Tỉnh', 'tỉnh', 'Huyện', 'huyện', 'Xã', 'xã',
-			'TP.', 'TP', 'Thành phố', 'Thành Phố', 'thị xã', 'Thị xã', 'Thị Xã'
-		), '', $name);
+		$name = str_replace(
+			array(
+				'Thị Trấn',
+				'Thị trấn',
+				'thị trấn',
+				'Tỉnh',
+				'tỉnh',
+				'Huyện',
+				'huyện',
+				'Xã',
+				'xã',
+				'TP.',
+				'TP',
+				'Thành phố',
+				'Thành Phố',
+				'thị xã',
+				'Thị xã',
+				'Thị Xã',
+			),
+			'',
+			$name
+		);
 
 		/**
 		 * Fix district names and ward names
 		 */
-		$name = preg_replace(array(
-			'/qu\ận {1,}([^d].+)$/',
-			'/Qu\ận {1,}([^d].+)$/',
-			'/ph\ư\ờng {1,}([^d].+)$/',
-			'/Ph\ư\ờng {1,}([^d].+)$/',
-		), '$1', trim($name));
+		$name = preg_replace(
+			array(
+				'/qu\ận {1,}([^d].+)$/',
+				'/Qu\ận {1,}([^d].+)$/',
+				'/ph\ư\ờng {1,}([^d].+)$/',
+				'/Ph\ư\ờng {1,}([^d].+)$/',
+			),
+			'$1',
+			trim( $name )
+		);
 
 		/**
 		 * Fix name do not have whitespace
@@ -84,16 +110,20 @@ class Diagioihanhchinh_Data {
 		/**
 		 * Fix special cases
 		 */
-		$name = str_replace(array(
-			'Bà Rịa Vũng Tàu'
-		), array(
-			'Bà Rịa - Vũng Tàu'
-		), $name);
+		$name = str_replace(
+			array(
+				'Bà Rịa Vũng Tàu',
+			),
+			array(
+				'Bà Rịa - Vũng Tàu',
+			),
+			$name
+		);
 
-		if ($clean_unicode) {
-			return remove_accents(trim($name));
+		if ( $clean_unicode ) {
+			return remove_accents( trim( $name ) );
 		}
-		return trim($name);
+		return trim( $name );
 	}
 }
 

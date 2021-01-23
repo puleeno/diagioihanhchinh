@@ -38,7 +38,7 @@ class Diagioihanhchinh {
 		require_once dirname( __FILE__ ) . '/class-diagioihanhchinh-common.php';
 		require_once dirname( __FILE__ ) . '/class-diagioihanhchinh-data.php';
 		require_once dirname( __FILE__ ) . '/class-diagioihanhchinh-fetcher.php';
-
+		require_once dirname( __FILE__ ) . '/class-diagioihanhchinh-query.php';
 		require_once dirname( __FILE__ ) . '/class-diagioihanhchinh-install.php';
 
 		require_once dirname( __FILE__ ) . '/integration/class-diagioihanhchinh-wordland-integration.php';
