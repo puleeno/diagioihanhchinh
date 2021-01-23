@@ -203,8 +203,10 @@ class Diagioihanhchinh_Wordland_Integration {
 			'location_name' => $location_name,
 			'ascii_name'    => remove_accents( $location_name ),
 			'clean_name'    => $clean_name,
-			'geo_eng_name'  => $geo_eng_name,
 		);
+		if ($taxonomy === 'administrative_area_level_1') {
+			$data['geo_eng_name'] = $geo_eng_name;
+		}
 
 		return Diagioihanhchinh_Query::insert_location( $term_id, $data );
 	}
