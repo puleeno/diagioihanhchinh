@@ -44,8 +44,8 @@ class Diagioihanhchinh_Geo_Data_Importer {
 		if ( empty( $support_geodata_taxonomies ) ) {
 			return;
 		}
-		// $this->import_city_geodata( $support_geodata_taxonomies );
-		// $this->import_district_geodata( $support_geodata_taxonomies );
+		$this->import_city_geodata( $support_geodata_taxonomies );
+		$this->import_district_geodata( $support_geodata_taxonomies );
 		$this->import_ward_geodata( $support_geodata_taxonomies );
 	}
 
