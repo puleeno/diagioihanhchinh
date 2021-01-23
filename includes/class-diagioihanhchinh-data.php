@@ -145,7 +145,7 @@ class Diagioihanhchinh_Data {
 		$filter_db = function( $terms_clauses ) use ( $name ) {
 			global $wpdb;
 			$clean_name = self::clean_location_name( $name );
-			$clean_name = remove_accents( $name );
+			$clean_name = remove_accents( $clean_name );
 
 			$terms_clauses['join']  .= " INNER JOIN {$wpdb->prefix}wordland_locations l ON t.term_id = l.term_id";
 			$terms_clauses['where'] .= " AND l.clean_name LIKE '%" . $wpdb->_real_escape( $clean_name ) . "%'";

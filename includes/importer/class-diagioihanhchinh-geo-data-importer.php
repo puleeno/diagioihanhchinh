@@ -13,9 +13,13 @@ class Diagioihanhchinh_Geo_Data_Importer {
 		return str_replace(
 			array(
 				'Cần Thơn',
+				'Bà Rịa -Vũng Tàu',
+				'Quản Bình'
 			),
 			array(
 				'Cần Thơ',
+				'Bà Rịa - Vũng Tàu',
+				'Quảng Bình'
 			),
 			$name
 		);
@@ -60,6 +64,10 @@ class Diagioihanhchinh_Geo_Data_Importer {
 
 				foreach ( $support_geodata_taxonomies as $taxonomy ) {
 					$term = Diagioihanhchinh_Data::get_term_from_clean_name( $city_name, $taxonomy );
+					if (empty($term)) {
+						var_dump($city_name);
+						continue;
+					}
 					do_action(
 						"diagioihanhchinh_insert_{$taxonomy}_term_geodata",
 						$geom,
@@ -72,37 +80,38 @@ class Diagioihanhchinh_Geo_Data_Importer {
 	}
 
 	protected function import_district_geodata( $city_taxonomies ) {
-		$city_dat_file = sprintf( '%s/diaphantinhvn.kml', $this->data_dir );
-		if ( ! file_exists( $city_dat_file ) ) {
+		$district_dat_file = sprintf( '%s/diaphanhuyen.kml', $this->data_dir );
+		if ( ! file_exists( $district_dat_file ) ) {
 			error_log(
 				sprintf(
 					'Lỗi tập tin data "%s" không tồn tại',
-					$city_dat_file
+					$district_dat_file
 				)
 			);
 		}
-		$kml = simplexml_load_file( $city_dat_file );
+		$kml = simplexml_load_file( $district_dat_file );
 		if ( ! isset( $kml->Document->Folder ) ) {
 			return;
 		}
-		$cities = $kml->Document->Folder;
-		foreach ( $cities->Placemark as $city ) {
-			if ( ! isset( $city->ExtendedData->SchemaData->SimpleData[2] ) ) {
+		$districts = $kml->Document->Folder;
+		foreach ( $districts->Placemark as $district ) {
+			var_dump($district);die;
+			if ( ! isset( $district->ExtendedData->SchemaData->SimpleData[2] ) ) {
 				continue;
 			}
-			$city_name = $city->ExtendedData->SchemaData->SimpleData[2];
+			$district_name = $district->ExtendedData->SchemaData->SimpleData[2];
 
-			if ( (string) $city_name['name'] === 'ten_tinh' ) {
-				$city_name = $this->fix_location_name( (string) $city_name );
+			if ( (string) $district_name['name'] === 'ten_tinh' ) {
+				$district_name = $this->fix_location_name( (string) $district_name );
 
-				$geom = geoPHP::load( $city->asXML(), 'kml' );
+				$geom = geoPHP::load( $district->asXML(), 'kml' );
 
 				foreach ( $support_geodata_taxonomies as $taxonomy ) {
 					do_action(
 						"diagioihanhchinh_insert_{$taxonomy}_term_geodata",
 						$geom,
 						$term,
-						$city->asXML()
+						$district->asXML()
 					);
 				}
 			}
