@@ -15,7 +15,43 @@ class Diagioihanhchinh_Query {
 			);
 		} else {
 			$location_data['term_id'] = $term_id;
-			return $wpdb->insert( $table_name, $location_data );
+			$raw_sql                  = "INSERT INTO {$wpdb->prefix}wordland_locations(";
+
+			foreach ( array_keys( $location_data ) as $key ) {
+				$raw_sql .= sprintf( '%s, ', $key );
+			}
+			if ( ! isset( $location_data['location'] ) ) {
+				$raw_sql .= 'location';
+			} else {
+				$raw_sql = rtrim( $raw_sql, ', ' );
+			}
+			$raw_sql .= ') VALUES(';
+			foreach ( $location_data as $value ) {
+				switch ( gettype( $value ) ) {
+					case 'boolean':
+					case 'integer':
+						$raw_sql .= '%d, ';
+						break;
+					case 'double':
+						$raw_sql .= '%f, ';
+						break;
+					default:
+						$raw_sql .= '%s, ';
+						break;
+				}
+			}
+
+			if ( ! isset( $location_data['location'] ) ) {
+				$raw_sql .= "ST_GeomFromText('POINT(0 0)')";
+			} else {
+				$raw_sql = rtrim( $raw_sql, ', ' );
+			}
+			$raw_sql .= ')';
+			$values   = array_values( $location_data );
+			array_unshift( $values, $raw_sql );
+			$sql = call_user_func_array( array( $wpdb, 'prepare' ), $values );
+
+			return $wpdb->query( $sql );
 		}
 	}
 }

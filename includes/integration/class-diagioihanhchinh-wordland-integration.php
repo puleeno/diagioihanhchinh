@@ -157,7 +157,7 @@ class Diagioihanhchinh_WordLand_Integration {
 
 			return "ST_GeomFromText('$insert_string')";
 		}
-		return 'NULL';
+		return 'ST_GeomFromText(POINT(0 0)';
 	}
 
 	protected function get_parent_names( $parent_term_id, $clean_name = false, &$names = array() ) {
