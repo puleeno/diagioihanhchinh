@@ -149,7 +149,7 @@ class Diagioihanhchinh_Data_Importer {
 					$this->insert_flag_orgid_taxomnomy_meta_to_reverse( $taxonomy, $orgcity_id, $term_id );
 				}
 			}
-			$this->import_from_districts( $city['districts'], $orgcity_id );
+			// $this->import_from_districts( $city['districts'], $orgcity_id );
 		}
 	}
 

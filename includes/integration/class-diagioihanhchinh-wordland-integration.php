@@ -150,10 +150,10 @@ class Diagioihanhchinh_WordLand_Integration {
 	protected function create_geodata_sql( $multipolygon ) {
 		global $wpdb;
 		if ( is_a( $multipolygon, MultiPolygon::class ) ) {
-			$insert_string = $wpdb->_real_escape( $multipolygon->out( 'wkt' ) );
+			$insert_string = $wpdb->_real_escape( $multipolygon->out( 'ewkt' ) );
 			return "ST_GeomFromText('$insert_string')";
 		} elseif ( is_a( $multipolygon, Polygon::class ) ) {
-			$insert_string = $wpdb->_real_escape( $multipolygon->out( 'wkt' ) );
+			$insert_string = $wpdb->_real_escape( $multipolygon->out( 'ewkt' ) );
 
 			return "ST_GeomFromText('$insert_string')";
 		}
@@ -178,7 +178,6 @@ class Diagioihanhchinh_WordLand_Integration {
 		if ( $term->parent > 0 ) {
 			$location_names = $this->get_parent_names( $term->parent );
 			array_unshift( $location_names, $term->name );
-
 			$location_names = implode( $this->get_name_separator(), $location_names );
 		} else {
 			$location_names = $term->name;
@@ -213,7 +212,9 @@ class Diagioihanhchinh_WordLand_Integration {
 			);
 		}
 
-		return $wpdb->query( $sql );
+		$result = $wpdb->query( $sql );
+		return $result;
+
 	}
 
 	public function insert_data_to_wordland_location( $term_id, $name, $taxonomy, $parent_term_id ) {
