@@ -16,5 +16,11 @@
         "phpoffice/phpspreadsheet": "1.8.2",
         "nategood/commando": "dev-master",
         "phayes/geophp": "dev-master"
-    }
+    },
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/ramphor/PHPMatrix.git"
+        }
+    ]
 }
