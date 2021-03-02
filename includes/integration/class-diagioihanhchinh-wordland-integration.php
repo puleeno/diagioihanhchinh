@@ -7,6 +7,19 @@ class Diagioihanhchinh_WordLand_Integration {
 		add_action( 'init', array( $this, 'create_data' ) );
 
 		add_filter( 'diagioihanhchinh_pre_get_location_term', array( $this, 'override_default_get_term' ), 10, 4 );
+		add_filter( 'wordland_clean_location_name', array(Diagioihanhchinh_Data::class, 'clean_location_name'), 10, 2);
+
+		if (wp_is_request('cron')) {
+			add_filter('wordland_spreadsheet_importer_mapping_city_name_field', function() {
+				return 'area_level_1';
+			});
+			add_filter('wordland_spreadsheet_importer_mapping_district_name_field', function() {
+				return 'area_level_2';
+			});
+			add_filter('wordland_spreadsheet_importer_mapping_ward_name_field', function() {
+				return 'area_level_3';
+			});
+		}
 	}
 
 	protected function get_name_separator() {
